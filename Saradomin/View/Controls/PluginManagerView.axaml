@@ -32,7 +32,7 @@
 
 
                             <ListBox Classes="PluginList"
-                                     Items="{Binding LocalPlugins}"
+                                     ItemsSource="{Binding LocalPlugins}"
                                      SelectionMode="Single">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate DataType="{x:Type model:PluginInfo}">
@@ -91,7 +91,7 @@
                                       HorizontalScrollBarVisibility="Hidden"
                                       VerticalScrollBarVisibility="Visible">
                             <ListBox Classes="PluginList"
-                                     Items="{Binding RemotePlugins}"
+                                     ItemsSource="{Binding RemotePlugins}"
                                      SelectionMode="Single">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate DataType="{x:Type model:PluginInfo}">

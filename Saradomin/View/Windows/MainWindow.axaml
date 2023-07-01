@@ -2,10 +2,9 @@
                    xmlns="https://github.com/avaloniaui"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:controls="clr-namespace:Saradomin.View.Controls"
-                   xmlns:glitonea="clr-namespace:Glitonea;assembly=Glitonea"
+                   xmlns:glitonea="clr-namespace:Glitonea.Controls;assembly=Glitonea"
                    xmlns:mvvm="clr-namespace:Glitonea.Mvvm;assembly=Glitonea"
                    xmlns:vm="clr-namespace:Saradomin.ViewModel.Windows"
-                   Name="MainWindow"
                    Title="{Binding Title}"
                    Width="800"
                    Height="550"
@@ -43,7 +42,7 @@
                                FontSize="14"
                                FontWeight="Light"
                                Foreground="{StaticResource AccentBrush}"
-                               Text="{Binding #MainWindow.Title}"
+                               Text="{Binding $parent[Window].Title}"
                                TextAlignment="Center" />
 
                     <Button Grid.Column="2"
