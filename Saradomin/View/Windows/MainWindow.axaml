@@ -86,10 +86,12 @@
 
                 <TabControl Grid.Row="1"
                             Grid.RowSpan="1"
+                            Padding="0"
                             Background="Transparent"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             Classes="PageSelector">
                     <TabItem Width="95"
+                             VerticalAlignment="Top"
                              HorizontalContentAlignment="Center"
                              CornerRadius="0,0,0,8"
                              Header="what's new">
