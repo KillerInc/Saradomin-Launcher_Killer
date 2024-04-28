@@ -2,15 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Glitonea.Controls;
-using Glitonea.Extensions;
+using Glitonea;
 using PropertyChanged;
 using Saradomin.Infrastructure;
 
 namespace Saradomin.View.Windows
 {
     [DoNotNotify]
-    public partial class NotificationBox : WindowEx
+    public partial class NotificationBox : Window
     {
         private static Queue<NotificationBox> _notificationQueue = new();
         

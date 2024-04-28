@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Reflection;
 using Avalonia;
+using Glitonea;
 
 namespace Saradomin
 {
@@ -13,6 +15,7 @@ namespace Saradomin
 
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
+                .UseGlitoneaFramework(Assembly.GetExecutingAssembly())
                 .UsePlatformDetect()
                 .LogToTrace();
     }

@@ -14,7 +14,6 @@ namespace Saradomin
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
-            GlitoneaCore.Initialize();
         }
 
         public override void OnFrameworkInitializationCompleted()

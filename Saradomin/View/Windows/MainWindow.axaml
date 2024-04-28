@@ -1,4 +1,4 @@
-<glitonea:WindowEx x:Class="Saradomin.View.Windows.MainWindow"
+<Window x:Class="Saradomin.View.Windows.MainWindow"
                    xmlns="https://github.com/avaloniaui"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:controls="clr-namespace:Saradomin.View.Controls"
@@ -167,4 +167,4 @@
             </Grid>
         </Border>
     </Grid>
-</glitonea:WindowEx>
+</Window>

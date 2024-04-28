@@ -1,7 +1,10 @@
 <Application x:Class="Saradomin.App"
              xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:glitonea="clr-namespace:Glitonea;assembly=Glitonea">
     <Application.Resources>
+        <glitonea:Glitonea />
+            
         <Color x:Key="DarkBackgroundColor">#3E3529</Color>
         <Color x:Key="DarkTranslucentBackgroundColor">#CC3E3529</Color>
         <Color x:Key="DarkForegroundColor">#3E3529</Color>
@@ -109,7 +112,5 @@
         <StyleInclude Source="avares://Saradomin/Resources/Styles/RadioButton.axaml" />
         <StyleInclude Source="avares://Saradomin/Resources/Styles/ListBox.axaml" />
         <StyleInclude Source="avares://Saradomin/Resources/Styles/ListBoxItem.axaml" />
-
-        <StyleInclude Source="avares://Glitonea/Glitonea.axaml" />
     </Application.Styles>
 </Application>
