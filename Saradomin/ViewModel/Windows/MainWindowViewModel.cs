@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -42,7 +43,11 @@ namespace Saradomin.ViewModel.Windows
             IRemoteConfigService remoteConfigService,
             IJavaUpdateService javaUpdateService)
         {
-            _launchService = launchService;
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                _launchService = new OSXDockLaunchService(settingsService, updateService);
+            else
+                _launchService = launchService;
+
             _updateService = updateService;
             _updateService.DownloadProgressChanged += OnClientDownloadProgressUpdated;
             _remoteConfigService = remoteConfigService;
