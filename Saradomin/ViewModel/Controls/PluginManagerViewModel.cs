@@ -28,7 +28,7 @@ namespace Saradomin.ViewModel.Controls
             _pluginManagementService = pluginManagementService;
             _pluginDownloadService = pluginDownloadService;
             
-            Message.Subscribe<MainViewLoadedMessage>(this, MainViewLoaded);
+            Subscribe<MainViewLoadedMessage>(MainViewLoaded);
             
             PropertyChanged += ViewModelPropertyChanged;
         }

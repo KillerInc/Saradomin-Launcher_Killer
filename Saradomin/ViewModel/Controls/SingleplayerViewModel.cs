@@ -60,7 +60,7 @@ namespace Saradomin.ViewModel.Controls
                 TextWrapping = TextWrapping.Wrap,
             };
         
-            Message.Subscribe<ClientClosedMessage>(this, OnClientClosed);
+            Subscribe<ClientClosedMessage>(OnClientClosed);
         }
 
         private void OnClientClosed(ClientClosedMessage _)

@@ -1,12 +1,7 @@
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
-using Glitonea.Extensions;
+using Glitonea;
 using Saradomin.Utilities;
 
 namespace Saradomin.Infrastructure.Services

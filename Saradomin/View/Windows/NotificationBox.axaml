@@ -1,7 +1,6 @@
-<glitonea:WindowEx x:Class="Saradomin.View.Windows.NotificationBox"
+<Window x:Class="Saradomin.View.Windows.NotificationBox"
                    xmlns="https://github.com/avaloniaui"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                   xmlns:glitonea="clr-namespace:Glitonea.Controls;assembly=Glitonea"
                    xmlns:mvvm="clr-namespace:Glitonea.Mvvm;assembly=Glitonea"
                    xmlns:windows="clr-namespace:Saradomin.ViewModel.Windows"
                    xmlns:windows1="clr-namespace:Saradomin.View.Windows"
@@ -54,4 +53,4 @@
             </Border>
         </Grid>
     </Border>
-</glitonea:WindowEx>
+</Window>
