@@ -39,7 +39,7 @@ namespace Saradomin.Infrastructure.Services
                         + $"-DclientFps={_settingsService.Client.Fps} "
                         + $"-DclientHomeOverride=\"{CrossPlatform.Get2009scapeHome()}/\" "
                         + $"-jar \"{_clientUpdateService.PreferredTargetFilePath}\""
-                        + $"-Dsun.java2d.d3d=false", // Fixes exclusive Full Screen rendering a black screen in Windows.
+                        + $"-Dsun.java2d.opengl=true", // Fixes exclusive Full Screen rendering a black screen in Windows.
                     WorkingDirectory = $"{CrossPlatform.Get2009scapeHome()}",
                     UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Hidden
