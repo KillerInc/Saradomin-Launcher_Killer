@@ -35,11 +35,11 @@ namespace Saradomin.Infrastructure.Services
                 )
                 {
                     Arguments =
-                        $"-Dsun.java2d.uiScale={_settingsService.Client.UiScale} "
+                        $"-Dsun.java2d.opengl=true " //Fixes exclusive Full Screen rendering a black screen in Windows.
+                        + $"-Dsun.java2d.uiScale={_settingsService.Client.UiScale} "
                         + $"-DclientFps={_settingsService.Client.Fps} "
                         + $"-DclientHomeOverride=\"{CrossPlatform.Get2009scapeHome()}/\" "
-                        + $"-jar \"{_clientUpdateService.PreferredTargetFilePath}\""
-                        + $"-Dsun.java2d.opengl=true", // Fixes exclusive Full Screen rendering a black screen in Windows.
+                        + $"-jar \"{_clientUpdateService.PreferredTargetFilePath}\"",
                     WorkingDirectory = $"{CrossPlatform.Get2009scapeHome()}",
                     UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Hidden
