@@ -2,12 +2,16 @@
 
 This file tracks **Killer launcher changes only**. Any upstream Saradomin changelog or release notes are intentionally preserved separately.
 
+## v1.6.7 — 2026-10-04
+
+- Restored fractional **UI Scale** steps in 0.1 increments (1.0, 1.1, 1.2, 1.5, 1.7, etc.).
+- Removed the separate **Text Scale** control and setting.
+- UI Scale remains the single user-facing scale value.
+- Killer RT4 font generation now follows the same UI Scale automatically.
+
 ## v1.6.6 — 2026-10-04
 
-- Restored the launcher's original integer **UI Scale** behavior.
-- Restored original client/window scaling behavior instead of using the experimental fractional window scaling.
-- Added a separate **Text Scale** setting beside UI Scale.
-- Passes Text Scale independently to the Killer RT4 client with `-DkillerTextScale`.
+- Experimental intermediate build; superseded by v1.6.7.
 - Updated release notes for vector-generated RT4 fonts.
 - Continues to use `KillerInc/RT4-Client-Killer` releases rather than the old upstream GitLab client artifact.
 
