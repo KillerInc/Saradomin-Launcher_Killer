@@ -57,6 +57,34 @@ namespace Saradomin.Infrastructure.Services
             {
                 SaveClientSettings();
             }
+
+            NormalizeBundledJavaLocation();
+        }
+
+        private void NormalizeBundledJavaLocation()
+        {
+            var bundledJava = CrossPlatform.GetBundledJavaExecutable();
+            if (!File.Exists(bundledJava))
+                return;
+
+            var configuredJava = Launcher.JavaExecutableLocation;
+            var javaFileName = Path.GetFileName(bundledJava);
+            var bundledSuffix = Path.Combine("jre11", "bin", javaFileName);
+
+            var configuredLooksBundled =
+                !string.IsNullOrWhiteSpace(configuredJava)
+                && configuredJava.EndsWith(bundledSuffix, StringComparison.OrdinalIgnoreCase);
+
+            if (string.IsNullOrWhiteSpace(configuredJava)
+                || !File.Exists(configuredJava)
+                || configuredLooksBundled)
+            {
+                if (!string.Equals(configuredJava, bundledJava, StringComparison.OrdinalIgnoreCase))
+                {
+                    Launcher.JavaExecutableLocation = bundledJava;
+                    SaveLauncherSettings();
+                }
+            }
         }
 
         private void SaveLauncherSettings()
