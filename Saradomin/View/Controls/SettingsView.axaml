@@ -143,10 +143,11 @@
                                            AllowSpin="True"
                                            Classes="NormalNumericUpDown"
                                            ClipValueToMinMax="True"
-                                           FormatString="0.00"
+                                           FormatString="0.0#"
+                                           Increment="0.1"
                                            Maximum="4"
-                                           Minimum="1"
-                                           ParsingNumberStyle="Integer"
+                                           Minimum="0.5"
+                                           ParsingNumberStyle="Number"
                                            ShowButtonSpinner="True"
                                            Value="{Binding Client.UiScale, Mode=TwoWay}" />
                         </Grid>
