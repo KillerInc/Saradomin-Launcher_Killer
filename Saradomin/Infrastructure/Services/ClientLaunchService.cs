@@ -36,7 +36,6 @@ namespace Saradomin.Infrastructure.Services
                 {
                     Arguments =
                         $"-Dsun.java2d.uiScale={_settingsService.Client.UiScale} "
-                        + $"-DkillerTextScale={_settingsService.Client.TextScale} "
                         + $"-DclientFps={_settingsService.Client.Fps} "
                         + $"-DclientHomeOverride=\"{CrossPlatform.Get2009scapeHome()}/\" "
                         + $"-jar \"{_clientUpdateService.PreferredTargetFilePath}\"",
