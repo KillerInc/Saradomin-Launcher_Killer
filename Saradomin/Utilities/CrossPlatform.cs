@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32;
@@ -181,48 +182,146 @@ namespace Saradomin.Utilities
                 );
         }
 
-        public static string Get2009scapeHome()
+        private const string GameLocationFileName = "game_location.txt";
+
+        public static string GetLauncherDirectory()
+        {
+            return AppContext.BaseDirectory;
+        }
+
+        public static string GetPortable2009scapeHome()
+        {
+            return Path.Combine(GetLauncherDirectory(), "2009scape");
+        }
+
+        private static string GetGameLocationFilePath()
+        {
+            return Path.Combine(GetLauncherDirectory(), GameLocationFileName);
+        }
+
+        private static string GetLegacy2009scapeHome()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
                 || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
             {
-                return Path.Combine(
-                    LocateUnixUserHome(),
-                    "2009scape"
-                );
+                return Path.Combine(LocateUnixUserHome(), "2009scape");
             }
-            else
+
+            var userProfile = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "2009scape"
+            );
+            var appData = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "2009scape"
+            );
+
+            return Directory.Exists(userProfile) ? userProfile : appData;
+        }
+
+        public static string Get2009scapeHome()
+        {
+            var locationFile = GetGameLocationFilePath();
+            if (File.Exists(locationFile))
             {
-                var userProfile = Path.Combine (
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "2009scape"
-                );
-                var appData = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "2009scape"
-                );
-                return Directory.Exists(userProfile) ? userProfile : appData;
+                var configured = File.ReadAllText(locationFile).Trim();
+                if (!string.IsNullOrWhiteSpace(configured))
+                    return Path.GetFullPath(configured);
             }
+
+            var portable = GetPortable2009scapeHome();
+            if (Directory.Exists(portable))
+                return portable;
+
+            // Keep existing installs working until the user explicitly moves them.
+            var legacy = GetLegacy2009scapeHome();
+            if (Directory.Exists(legacy))
+                return legacy;
+
+            // Fresh Killer Edition installs are portable by default.
+            return portable;
         }
 
         public static string GetSaradominHome()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+            return Path.Combine(Get2009scapeHome(), "saradomin");
+        }
+
+        public static void Set2009scapeHome(string path)
+        {
+            var fullPath = Path.GetFullPath(path);
+            File.WriteAllText(GetGameLocationFilePath(), fullPath);
+        }
+
+        public static string GetBundledJavaExecutable(string gameHome = null)
+        {
+            gameHome ??= Get2009scapeHome();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                return Path.Combine(
-                    // Get the XDG_DATA_HOME environment variable, or if it doesn't exist, use the default ~/.local/share
-                    LocateUnixUserHome(),
-                    "2009scape",
-                    "saradomin"
-                );
+                return Path.Combine(gameHome, "jre11", "Contents", "Home", "bin", "java");
             }
 
             return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "2009scape",
-                "saradomin"
+                gameHome,
+                "jre11",
+                "bin",
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java.exe" : "java"
             );
+        }
+
+        public static string Move2009scapeHome(string destinationParent)
+        {
+            var source = Path.GetFullPath(Get2009scapeHome());
+            var parent = Path.GetFullPath(destinationParent);
+            var destination = string.Equals(
+                Path.GetFileName(parent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
+                "2009scape",
+                StringComparison.OrdinalIgnoreCase
+            )
+                ? parent
+                : Path.Combine(parent, "2009scape");
+
+            destination = Path.GetFullPath(destination);
+
+            if (string.Equals(source, destination, StringComparison.OrdinalIgnoreCase))
+                return destination;
+
+            if (destination.StartsWith(source + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                throw new IOException("The new game location cannot be inside the current game folder.");
+
+            if (Directory.Exists(destination) && Directory.EnumerateFileSystemEntries(destination).Any())
+                throw new IOException("The destination 2009scape folder is not empty.");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+
+            try
+            {
+                Directory.Move(source, destination);
+            }
+            catch (IOException)
+            {
+                CopyDirectory(source, destination);
+                Directory.Delete(source, true);
+            }
+
+            Set2009scapeHome(destination);
+            return destination;
+        }
+
+        private static void CopyDirectory(string source, string destination)
+        {
+            Directory.CreateDirectory(destination);
+
+            foreach (var file in Directory.GetFiles(source))
+            {
+                File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), true);
+            }
+
+            foreach (var directory in Directory.GetDirectories(source))
+            {
+                CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory)));
+            }
         }
 
         public static string GetSingleplayerBackupsHome()
