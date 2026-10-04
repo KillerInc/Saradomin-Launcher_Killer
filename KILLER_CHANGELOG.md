@@ -2,6 +2,13 @@
 
 This file tracks **Killer launcher changes only**. Any upstream Saradomin changelog or release notes are intentionally preserved separately.
 
+## v1.6.8 — 2026-10-04
+
+- Added a separate **Font Scale** control beside UI Scale for per-display font tuning.
+- UI Scale remains unchanged and continues to control the whole client/window the existing way.
+- Font Scale is passed only to the Killer RT4 font generator with `-DkillerFontScale`.
+- Default Font Scale is `1.0`; supported range is `0.5` to `2.0` in 0.1 steps.
+
 ## v1.6.7 — 2026-10-04
 
 - Restored fractional **UI Scale** steps in 0.1 increments (1.0, 1.1, 1.2, 1.5, 1.7, etc.).
