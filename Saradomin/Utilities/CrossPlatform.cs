@@ -226,7 +226,11 @@ namespace Saradomin.Utilities
             {
                 var configured = File.ReadAllText(locationFile).Trim();
                 if (!string.IsNullOrWhiteSpace(configured))
-                    return Path.GetFullPath(configured);
+                {
+                    return Path.IsPathRooted(configured)
+                        ? Path.GetFullPath(configured)
+                        : Path.GetFullPath(Path.Combine(GetLauncherDirectory(), configured));
+                }
             }
 
             var portable = GetPortable2009scapeHome();
@@ -250,7 +254,15 @@ namespace Saradomin.Utilities
         public static void Set2009scapeHome(string path)
         {
             var fullPath = Path.GetFullPath(path);
-            File.WriteAllText(GetGameLocationFilePath(), fullPath);
+            var launcherDirectory = Path.GetFullPath(GetLauncherDirectory())
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var launcherPrefix = launcherDirectory + Path.DirectorySeparatorChar;
+
+            var storedPath = fullPath.StartsWith(launcherPrefix, StringComparison.OrdinalIgnoreCase)
+                ? Path.GetRelativePath(launcherDirectory, fullPath)
+                : fullPath;
+
+            File.WriteAllText(GetGameLocationFilePath(), storedPath);
         }
 
         public static string GetBundledJavaExecutable(string gameHome = null)
