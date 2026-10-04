@@ -77,6 +77,37 @@
                             </ComboBox.Styles>
                         </ComboBox>
                     </Grid>
+
+                    <Grid Margin="0,0,0,4"
+                          ColumnDefinitions="*,Auto"
+                          RowDefinitions="Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0"
+                                   Grid.ColumnSpan="2"
+                                   Margin="3,0,0,2"
+                                   Foreground="{StaticResource DarkForegroundBrush}"
+                                   Text="Game location" />
+
+                        <TextBox Grid.Row="1"
+                                 Grid.Column="0"
+                                 Margin="2,0,2,0"
+                                 IsReadOnly="True"
+                                 Classes="NormalTextBox"
+                                 Text="{Binding GameLocation, Mode=OneWay}" />
+
+                        <Button Grid.Row="1"
+                                Grid.Column="1"
+                                MinWidth="78"
+                                Height="24"
+                                Command="{Binding MoveGameLocation}"
+                                Content="Move..." />
+
+                        <TextBlock Grid.Row="2"
+                                   Grid.ColumnSpan="2"
+                                   Margin="3,2,0,0"
+                                   Foreground="{StaticResource DarkForegroundBrush}"
+                                   Text="{Binding MoveGameStatus}"
+                                   TextWrapping="Wrap" />
+                    </Grid>
                 </StackPanel>
             </HeaderedContentControl>
 
