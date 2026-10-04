@@ -58,11 +58,20 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=launcher-v$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Package Windows launcher ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          zip -j "2009scape-launcher-sc_v${{ steps.version.outputs.version }}.zip" "2009scape-launcher-sc.exe"
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v5
         with:
           name: 2009scape-launcher-sc
-          path: ${{ runner.temp }}/2009scape-launcher-sc.exe
+          path: |
+            ${{ runner.temp }}/2009scape-launcher-sc.exe
+            ${{ runner.temp }}/2009scape-launcher-sc_v${{ steps.version.outputs.version }}.zip
           if-no-files-found: error
 
       - name: Create or update GitHub release
@@ -71,6 +80,7 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
           VERSION: ${{ steps.version.outputs.version }}
           EXE: ${{ runner.temp }}/2009scape-launcher-sc.exe
+          ZIP: ${{ runner.temp }}/2009scape-launcher-sc_v${{ steps.version.outputs.version }}.zip
         shell: bash
         run: |
           set -euo pipefail
@@ -83,17 +93,20 @@ jobs:
           - Java path follows the bundled JRE automatically after game or launcher moves.
           - Fresh installs default to a portable 2009scape folder beside the launcher.
           - Existing installs remain in their current location until moved.
-          - UI scale now supports fractional steps such as 1.2x, 1.5x and 1.7x.
+          - UI scale supports fractional steps such as 1.2x, 1.5x and 1.7x.
+          - Uses KillerInc/RT4-Client-Killer instead of the upstream GitLab client.
+          - Passes the same fractional UI scale into Killer RT4 bitmap-font scaling.
+          - Windows launcher is also published in a ZIP for easier downloading.
           EOF
           )"
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$EXE" --clobber
+            gh release upload "$TAG" "$EXE" "$ZIP" --clobber
             gh release edit "$TAG" \
               --title "2009Scape Killer Launcher v$VERSION" \
               --notes "$NOTES"
           else
-            gh release create "$TAG" "$EXE" \
+            gh release create "$TAG" "$EXE" "$ZIP" \
               --target "$GITHUB_SHA" \
               --title "2009Scape Killer Launcher v$VERSION" \
               --notes "$NOTES"
