@@ -124,7 +124,7 @@ namespace Saradomin.ViewModel.Controls
             try
             {
                 var newHome = await Task.Run(() =>
-                    CrossPlatform.Move2009scapeHome(folders[0].Path.AbsolutePath)
+                    CrossPlatform.Move2009scapeHome(folders[0].Path.LocalPath)
                 );
 
                 if (!string.IsNullOrWhiteSpace(oldJava))
@@ -174,7 +174,7 @@ namespace Saradomin.ViewModel.Controls
             
             if (storageFiles.Count > 0)
             {
-                Launcher.JavaExecutableLocation = storageFiles[0].Path.AbsolutePath;
+                Launcher.JavaExecutableLocation = storageFiles[0].Path.LocalPath;
             }
         }
 
