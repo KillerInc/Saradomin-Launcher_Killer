@@ -93,9 +93,10 @@ jobs:
           - Java path follows the bundled JRE automatically after game or launcher moves.
           - Fresh installs default to a portable 2009scape folder beside the launcher.
           - Existing installs remain in their current location until moved.
-          - UI scale supports fractional steps such as 1.2x, 1.5x and 1.7x.
+          - Restores the original integer UI-scale behavior and window sizing.
+          - Adds a separate Text scale control beside UI scale.
           - Uses KillerInc/RT4-Client-Killer instead of the upstream GitLab client.
-          - Passes the same fractional UI scale into Killer RT4 bitmap-font scaling.
+          - Text scale controls startup generation of crisp RT4 glyphs from RuneScape vector fonts.
           - Windows launcher is also published in a ZIP for easier downloading.
           EOF
           )"
