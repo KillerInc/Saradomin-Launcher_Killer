@@ -1,0 +1,100 @@
+name: Build Killer Launcher
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release
+
+permissions:
+  contents: write
+
+concurrency:
+  group: killer-launcher-release
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build Windows self-contained launcher
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet publish Saradomin/Saradomin.csproj \
+            --runtime win-x64 \
+            --self-contained \
+            -c Release \
+            -p:PublishTrimmed=false \
+            -p:PublishReadyToRun=true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true
+
+          OUT="Saradomin/bin/Release/net6.0/win-x64/publish/Saradomin.exe"
+          test -s "$OUT"
+          cp "$OUT" "$RUNNER_TEMP/2009scape-launcher-sc.exe"
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Saradomin/Saradomin.csproj | head -1)"
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=launcher-v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: 2009scape-launcher-sc
+          path: ${{ runner.temp }}/2009scape-launcher-sc.exe
+          if-no-files-found: error
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          EXE: ${{ runner.temp }}/2009scape-launcher-sc.exe
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          NOTES="$(cat <<EOF
+          2009Scape Killer Launcher v$VERSION
+
+          Changes:
+          - Movable game-data location from the Settings tab.
+          - Java path follows the bundled JRE automatically after game or launcher moves.
+          - Fresh installs default to a portable 2009scape folder beside the launcher.
+          - Existing installs remain in their current location until moved.
+          - UI scale now supports fractional steps such as 1.2x, 1.5x and 1.7x.
+          EOF
+          )"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$EXE" --clobber
+            gh release edit "$TAG" \
+              --title "2009Scape Killer Launcher v$VERSION" \
+              --notes "$NOTES"
+          else
+            gh release create "$TAG" "$EXE" \
+              --target "$GITHUB_SHA" \
+              --title "2009Scape Killer Launcher v$VERSION" \
+              --notes "$NOTES"
+          fi
