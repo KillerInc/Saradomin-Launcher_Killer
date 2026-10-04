@@ -16,8 +16,8 @@ namespace Saradomin.Infrastructure.Services
 
         private float CurrentDownloadProgress { get; set; }
 
-        public string ClientDownloadURL => "https://gitlab.com/2009scape/rt4-client/-/jobs/artifacts/master/raw/client/build/libs/rt4-client.jar?job=build";
-        public string ClientHashURL => "https://gitlab.com/2009scape/rt4-client/-/jobs/artifacts/master/raw/client/build/libs/rt4-client.jar.sha256?job=build";
+        public string ClientDownloadURL => "https://github.com/KillerInc/RT4-Client-Killer/releases/latest/download/rt4-client-killer.jar";
+        public string ClientHashURL => "https://github.com/KillerInc/RT4-Client-Killer/releases/latest/download/rt4-client-killer.jar.sha256";
 
         public string PreferredTargetFilePath =>
             CrossPlatform.Get2009scapeExecutable();
