@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia;
@@ -22,6 +23,19 @@ namespace Saradomin.ViewModel.Controls
 
         public LauncherSettings Launcher => _settingsService.Launcher;
         public ClientSettings Client => _settingsService.Client;
+
+        public string GameLocation => CrossPlatform.Get2009scapeHome();
+
+        private string _moveGameStatus = string.Empty;
+        public string MoveGameStatus
+        {
+            get => _moveGameStatus;
+            private set
+            {
+                _moveGameStatus = value;
+                OnPropertyChanged(nameof(MoveGameStatus));
+            }
+        }
 
         public string VersionString
         {
@@ -83,6 +97,66 @@ namespace Saradomin.ViewModel.Controls
 
         public void LaunchProjectWebsite()
             => CrossPlatform.LaunchURL("https://gitlab.com/2009scape/Saradomin-Launcher");
+
+        public async Task MoveGameLocation()
+        {
+            var window = Application.Current!.GetMainWindow();
+            var currentHome = CrossPlatform.Get2009scapeHome();
+            var currentParent = Directory.GetParent(currentHome)?.FullName
+                                ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+            var pickerOptions = new FolderPickerOpenOptions
+            {
+                Title = "Choose a new game location",
+                AllowMultiple = false,
+                SuggestedStartLocation = await window!.StorageProvider.TryGetFolderFromPathAsync(currentParent)
+            };
+
+            var folders = await window.StorageProvider.OpenFolderPickerAsync(pickerOptions);
+            if (folders.Count == 0)
+                return;
+
+            var oldHome = Path.GetFullPath(currentHome);
+            var oldJava = Launcher.JavaExecutableLocation;
+
+            MoveGameStatus = "Moving game files...";
+
+            try
+            {
+                var newHome = await Task.Run(() =>
+                    CrossPlatform.Move2009scapeHome(folders[0].Path.AbsolutePath)
+                );
+
+                if (!string.IsNullOrWhiteSpace(oldJava))
+                {
+                    var fullJava = Path.GetFullPath(oldJava);
+                    var oldPrefix = oldHome.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                    + Path.DirectorySeparatorChar;
+
+                    if (fullJava.StartsWith(oldPrefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var relativeJava = Path.GetRelativePath(oldHome, fullJava);
+                        Launcher.JavaExecutableLocation = Path.Combine(newHome, relativeJava);
+                    }
+                }
+
+                // If the bundled JRE exists at the new location, prefer it when no Java path is configured.
+                if (string.IsNullOrWhiteSpace(Launcher.JavaExecutableLocation))
+                {
+                    var bundledJava = CrossPlatform.GetBundledJavaExecutable(newHome);
+                    if (File.Exists(bundledJava))
+                        Launcher.JavaExecutableLocation = bundledJava;
+                }
+
+                _settingsService.SaveAll();
+                OnPropertyChanged(nameof(GameLocation));
+                MoveGameStatus = $"Game location: {newHome}";
+            }
+            catch (Exception ex)
+            {
+                MoveGameStatus = $"Move failed: {ex.Message}";
+            }
+        }
 
         public async Task BrowseForJavaExecutable()
         {
