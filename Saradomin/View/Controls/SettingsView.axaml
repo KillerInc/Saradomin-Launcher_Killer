@@ -155,12 +155,12 @@
                                     Header="client settings">
                 <Grid RowDefinitions="Auto,*"
                       Margin="0,0,0,4">
-                    <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*">
                         <Grid Grid.Column="0"
                               RowDefinitions="Auto, Auto">
                             <TextBlock Grid.Row="0"
                                        Grid.Column="0"
-                                       Margin="0,0,4,0"
+                                       Margin="0,0,8,0"
                                        Foreground="{StaticResource DarkForegroundBrush}"
                                        Text="UI scale" />
 
@@ -168,7 +168,7 @@
                                            Grid.Column="0"
                                            Width="55"
                                            Height="28"
-                                           Margin="0,2,0,0"
+                                           Margin="0,2,8,0"
                                            HorizontalAlignment="Left"
                                            HorizontalContentAlignment="Right"
                                            AllowSpin="True"
@@ -183,6 +183,33 @@
                         </Grid>
 
                         <Grid Grid.Column="1"
+                              RowDefinitions="Auto, Auto">
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Margin="0,0,8,0"
+                                       Foreground="{StaticResource DarkForegroundBrush}"
+                                       Text="Text scale" />
+
+                            <NumericUpDown Grid.Row="1"
+                                           Grid.Column="0"
+                                           Width="55"
+                                           Height="28"
+                                           Margin="0,2,8,0"
+                                           HorizontalAlignment="Left"
+                                           HorizontalContentAlignment="Right"
+                                           AllowSpin="True"
+                                           Classes="NormalNumericUpDown"
+                                           ClipValueToMinMax="True"
+                                           FormatString="0.0#"
+                                           Increment="0.1"
+                                           Maximum="4"
+                                           Minimum="0.5"
+                                           ParsingNumberStyle="Number"
+                                           ShowButtonSpinner="True"
+                                           Value="{Binding Client.TextScale, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid Grid.Column="2"
                               RowDefinitions="Auto, Auto">
                             <TextBlock Grid.Row="0"
                                        Grid.Column="0"
