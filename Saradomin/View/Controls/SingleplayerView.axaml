@@ -51,11 +51,11 @@
                                     DockPanel.Dock="Top"
                                     Header="singleplayer launch">
                 <Grid Margin="4,2,4,2"
-                      ColumnDefinitions="120,140,120"
+                      ColumnDefinitions="120,162,120"
                       RowDefinitions="25,25,25,25"
                       HorizontalAlignment="Center">
 
-                    <!-- Row 1: headers + Update -->
+                    <!-- Row 1: Current | Update + Refresh | Latest -->
                     <TextBlock Grid.Row="0"
                                Grid.Column="0"
                                HorizontalAlignment="Center"
@@ -64,19 +64,35 @@
                                FontSize="10"
                                Text="Current Version" />
 
-                    <Button Grid.Row="0"
-                            Grid.Column="1"
-                            Width="140"
-                            Height="25"
-                            BorderBrush="{StaticResource DarkBorderBrush}"
-                            BorderThickness="1"
-                            Classes="OutsideNavigator"
-                            Command="{Binding DownloadSingleplayer}"
-                            Opacity="1"
-                            FontSize="11"
-                            Content="{Binding SingleplayerDownloadText}"
-                            ZIndex="9999"
-                            IsEnabled="{Binding CanDownload}" />
+                    <Grid Grid.Row="0"
+                          Grid.Column="1"
+                          Width="162"
+                          ColumnDefinitions="140,22">
+                        <Button Grid.Column="0"
+                                Width="140"
+                                Height="25"
+                                BorderBrush="{StaticResource DarkBorderBrush}"
+                                BorderThickness="1"
+                                Classes="OutsideNavigator"
+                                Command="{Binding DownloadSingleplayer}"
+                                Opacity="1"
+                                FontSize="11"
+                                Content="{Binding SingleplayerDownloadText}"
+                                ZIndex="9999"
+                                IsEnabled="{Binding CanDownload}" />
+
+                        <Button Grid.Column="1"
+                                Width="22"
+                                Height="25"
+                                Padding="0"
+                                BorderBrush="{StaticResource DarkBorderBrush}"
+                                BorderThickness="1"
+                                Classes="OutsideNavigator"
+                                Command="{Binding RefreshRt4Version}"
+                                Content="R"
+                                FontSize="9"
+                                ToolTip.Tip="Refresh latest version" />
+                    </Grid>
 
                     <TextBlock Grid.Row="0"
                                Grid.Column="2"
@@ -86,7 +102,7 @@
                                FontSize="10"
                                Text="Latest Version" />
 
-                    <!-- Row 2: timestamps + Start -->
+                    <!-- Row 2: Current date | Start | Latest date -->
                     <TextBlock Grid.Row="1"
                                Grid.Column="0"
                                Margin="0,2,4,2"
@@ -101,6 +117,7 @@
                             Margin="0,2,0,2"
                             Width="140"
                             Height="21"
+                            HorizontalAlignment="Center"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
                             Classes="OutsideNavigator"
@@ -111,35 +128,22 @@
                             ZIndex="9999"
                             IsEnabled="{Binding CanLaunch}" />
 
-                    <Grid Grid.Row="1"
-                          Grid.Column="2"
-                          Margin="4,2,0,2"
-                          ColumnDefinitions="*,22">
-                        <TextBlock Grid.Column="0"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   Foreground="Black"
-                                   FontSize="9"
-                                   Text="{Binding LatestRt4Version}" />
-                        <Button Grid.Column="1"
-                                Width="20"
-                                Height="20"
-                                Padding="0"
-                                BorderBrush="{StaticResource DarkBorderBrush}"
-                                BorderThickness="1"
-                                Classes="OutsideNavigator"
-                                Command="{Binding RefreshRt4Version}"
-                                Content="R"
-                                FontSize="9"
-                                ToolTip.Tip="Refresh latest version" />
-                    </Grid>
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="2"
+                               Margin="4,2,0,2"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="Black"
+                               FontSize="9"
+                               Text="{Binding LatestRt4Version}" />
 
-                    <!-- Row 3: backup -->
+                    <!-- Row 3 -->
                     <Button Grid.Row="2"
                             Grid.Column="1"
                             Margin="0,2,0,2"
                             Width="140"
                             Height="21"
+                            HorizontalAlignment="Center"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
                             Classes="OutsideNavigator"
@@ -149,12 +153,13 @@
                             Content="Make Backup"
                             ZIndex="9999" />
 
-                    <!-- Row 4: open backups -->
+                    <!-- Row 4 -->
                     <Button Grid.Row="3"
                             Grid.Column="1"
                             Margin="0,2,0,2"
                             Width="140"
                             Height="21"
+                            HorizontalAlignment="Center"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
                             Classes="OutsideNavigator"
