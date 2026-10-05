@@ -8,5 +8,7 @@ namespace Saradomin.Infrastructure.Services
     {
         event EventHandler<Tuple<float, bool>> SingleplayerDownloadProgressChanged;
         Task DownloadSingleplayer();
+        string GetInstalledRt4Version();
+        Task<string> GetLatestRt4Version();
     }
 }
