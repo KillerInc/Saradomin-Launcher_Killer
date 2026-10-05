@@ -70,14 +70,15 @@ namespace Saradomin.Infrastructure.Services
             if (catalog.SchemaVersion != 1)
                 throw new InvalidDataException($"Unsupported plugin catalog schema {catalog.SchemaVersion}.");
 
-            var result = new List<PluginInfo>();
+            var plugins = new Dictionary<string, PluginInfo>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var entry in catalog.Plugins)
             {
                 if (string.IsNullOrWhiteSpace(entry.Id)
                     || string.IsNullOrWhiteSpace(entry.DownloadUrl))
                     continue;
 
-                var info = new PluginInfo(entry.Id)
+                plugins[entry.Id] = new PluginInfo(entry.Id)
                 {
                     Name = string.IsNullOrWhiteSpace(entry.Name) ? entry.Id : entry.Name,
                     Author = entry.Author ?? string.Empty,
@@ -86,18 +87,53 @@ namespace Saradomin.Infrastructure.Services
                     DownloadUrl = entry.DownloadUrl,
                     Sha256 = entry.Sha256 ?? string.Empty
                 };
+            }
 
-                var localPath = GetPluginPath(pluginRepositoryPath, info.Id);
-                info.Installed = File.Exists(localPath);
+            // The modern client owns the plugin format. Always inspect local JAR
+            // metadata too, so manually installed/private plugins remain visible
+            // even when they are not part of the public catalog.
+            foreach (var jarPath in Directory.GetFiles(
+                         pluginRepositoryPath,
+                         "*.jar",
+                         SearchOption.TopDirectoryOnly))
+            {
+                var local = ReadInstalledPlugin(jarPath);
+                if (local == null)
+                    continue;
 
-                if (info.Installed)
+                if (plugins.TryGetValue(local.Id, out var remote))
                 {
-                    var localVersion = ReadInstalledVersion(localPath);
-                    info.UpdateAvailable = !string.Equals(
-                        localVersion,
-                        info.Version,
+                    remote.Installed = true;
+                    remote.UpdateAvailable = !string.Equals(
+                        local.Version,
+                        remote.Version,
                         StringComparison.OrdinalIgnoreCase
                     );
+                }
+                else
+                {
+                    local.Installed = true;
+                    local.UpdateAvailable = false;
+                    plugins[local.Id] = local;
+                }
+            }
+
+            var result = new List<PluginInfo>();
+            foreach (var info in plugins.Values)
+            {
+                if (!info.Installed)
+                {
+                    var legacyPath = GetPluginPath(pluginRepositoryPath, info.Id);
+                    if (File.Exists(legacyPath))
+                    {
+                        info.Installed = true;
+                        var localVersion = ReadInstalledVersion(legacyPath);
+                        info.UpdateAvailable = !string.Equals(
+                            localVersion,
+                            info.Version,
+                            StringComparison.OrdinalIgnoreCase
+                        );
+                    }
                 }
 
                 if (!isUpdateCheck || info.UpdateAvailable)
@@ -171,6 +207,61 @@ namespace Saradomin.Infrastructure.Services
 
         private static string GetPluginPath(string repositoryPath, string pluginId)
             => Path.Combine(repositoryPath, pluginId + ".jar");
+
+        private static PluginInfo ReadInstalledPlugin(string jarPath)
+        {
+            try
+            {
+                using var archive = ZipFile.OpenRead(jarPath);
+                var entry = archive.GetEntry("META-INF/killer-plugin.properties");
+                if (entry == null)
+                    return null;
+
+                var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                using var reader = new StreamReader(entry.Open());
+                while (!reader.EndOfStream)
+                {
+                    var raw = reader.ReadLine();
+                    if (string.IsNullOrWhiteSpace(raw))
+                        continue;
+
+                    var line = raw.Trim();
+                    if (line.StartsWith("#") || line.StartsWith("!"))
+                        continue;
+
+                    var separator = line.IndexOf('=');
+                    if (separator <= 0)
+                        continue;
+
+                    var key = line.Substring(0, separator).Trim();
+                    var value = line.Substring(separator + 1).Trim().Trim('\'', '"');
+                    values[key] = value;
+                }
+
+                var fallbackId = Path.GetFileNameWithoutExtension(jarPath);
+                var id = values.TryGetValue("ID", out var parsedId) && !string.IsNullOrWhiteSpace(parsedId)
+                    ? parsedId
+                    : fallbackId;
+
+                return new PluginInfo(id)
+                {
+                    Name = values.TryGetValue("NAME", out var name) && !string.IsNullOrWhiteSpace(name)
+                        ? name
+                        : id,
+                    Author = values.TryGetValue("AUTHOR", out var author) ? author : string.Empty,
+                    Description = values.TryGetValue("DESCRIPTION", out var description)
+                        ? description
+                        : string.Empty,
+                    Version = values.TryGetValue("VERSION", out var version) && !string.IsNullOrWhiteSpace(version)
+                        ? version
+                        : "0.0.0"
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         private static string ReadInstalledVersion(string jarPath)
         {
