@@ -179,16 +179,6 @@ namespace Saradomin.ViewModel.Controls
             return tcpConnInfoArray.Any(endpoint => endpoint.Port == port);
         } 
 
-        private void LaunchFaq()
-        {
-            CrossPlatform.LaunchURL("https://2009scape.org/site/game_guide/singleplayer.html");
-        }
-
-        private void LaunchForums()
-        {
-            CrossPlatform.LaunchURL("https://forum.2009scape.org/viewforum.php?f=8-support");
-        }
-
         public bool Cheats
         {
             get => ParseConf<bool>("noauth_default_admin");
