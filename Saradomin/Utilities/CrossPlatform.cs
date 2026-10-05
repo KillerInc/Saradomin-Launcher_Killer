@@ -271,7 +271,7 @@ namespace Saradomin.Utilities
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                return Path.Combine(gameHome, "jre11", "Contents", "Home", "bin", "java");
+                return Path.Combine(gameHome, "jre25", "Contents", "Home", "bin", "java");
             }
 
             return Path.Combine(
@@ -353,7 +353,7 @@ namespace Saradomin.Utilities
         
         public static string Get2009scapeExecutable()
         {
-            return Path.Combine(Get2009scapeHome(), "2009scape.jar");
+            return Path.Combine(Get2009scapeHome(), "osrs-client-killer.jar");
         }
 
         public static string GetServerProfilePath(string baseDirectory)
@@ -414,29 +414,26 @@ namespace Saradomin.Utilities
             return output.ToString();
         }
 
-        public static string GetJava11DownloadUrl()
+        public static string GetJava25DownloadUrl()
         {
             string architecture = GetSystemArchitecture();
+            string os;
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20%2B8/OpenJDK11U-jre_x64_windows_hotspot_11.0.20_8.zip";
-            }
+                os = "windows";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return architecture == "x64"
-                    ? "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20%2B8/OpenJDK11U-jre_x64_linux_hotspot_11.0.20_8.tar.gz"
-                    : "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20%2B8/OpenJDK11U-jre_aarch64_linux_hotspot_11.0.20_8.tar.gz";
-            }
+                os = "linux";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return architecture == "x64"
-                    ? "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20%2B8/OpenJDK11U-jre_x64_mac_hotspot_11.0.20_8.tar.gz"
-                    : "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20%2B8/OpenJDK11U-jre_aarch64_mac_hotspot_11.0.20_8.tar.gz";
-            }
+                os = "mac";
             else
-            {
                 throw new NotSupportedException("Your platform is not supported.");
-            }
+
+            return $"https://api.adoptium.net/v3/binary/latest/25/ga/{os}/{architecture}/jre/hotspot/normal/eclipse?project=jdk";
+        }
+
+        public static string GetJavaRuntimeArchiveExtension()
+        {
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".zip" : ".tar.gz";
         }
 
         private static string GetSystemArchitecture()
