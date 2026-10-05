@@ -276,7 +276,7 @@ namespace Saradomin.Utilities
 
             return Path.Combine(
                 gameHome,
-                "jre11",
+                "jre25",
                 "bin",
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java.exe" : "java"
             );
@@ -412,6 +412,23 @@ namespace Saradomin.Utilities
             process.WaitForExit();
 
             return output.ToString();
+        }
+
+        public static string GetJava11DownloadUrl()
+        {
+            string architecture = GetSystemArchitecture();
+            string os;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                os = "windows";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                os = "linux";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                os = "mac";
+            else
+                throw new NotSupportedException("Your platform is not supported.");
+
+            return $"https://api.adoptium.net/v3/binary/latest/11/ga/{os}/{architecture}/jre/hotspot/normal/eclipse?project=jdk";
         }
 
         public static string GetJava25DownloadUrl()
