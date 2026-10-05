@@ -51,19 +51,51 @@
                                     DockPanel.Dock="Top"
                                     Header="singleplayer launch">
                 <StackPanel Orientation="Vertical">
-                    <Button
-                            Margin="0,0,0,4"
-                            Width="140"
-                            Height="25"
-                            BorderBrush="{StaticResource DarkBorderBrush}"
-                            BorderThickness="1"
-                            Classes="OutsideNavigator"
-                            Command="{Binding DownloadSingleplayer}"
-                            Opacity="1"
-                            FontSize="11"
-                            Content="{Binding SingleplayerDownloadText}"
-                            ZIndex="9999"
-                            IsEnabled="{Binding CanDownload}" />
+                    <Grid Margin="0,0,0,4"
+                          ColumnDefinitions="*,140,*"
+                          VerticalAlignment="Center">
+                        <TextBlock Grid.Column="0"
+                                   Margin="4,0,8,0"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Foreground="{StaticResource DarkForegroundBrush}"
+                                   FontSize="10"
+                                   Text="{Binding CurrentRt4Version}" />
+
+                        <Button Grid.Column="1"
+                                Width="140"
+                                Height="25"
+                                BorderBrush="{StaticResource DarkBorderBrush}"
+                                BorderThickness="1"
+                                Classes="OutsideNavigator"
+                                Command="{Binding DownloadSingleplayer}"
+                                Opacity="1"
+                                FontSize="11"
+                                Content="{Binding SingleplayerDownloadText}"
+                                ZIndex="9999"
+                                IsEnabled="{Binding CanDownload}" />
+
+                        <StackPanel Grid.Column="2"
+                                    Margin="8,0,4,0"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <TextBlock VerticalAlignment="Center"
+                                       Foreground="{StaticResource DarkForegroundBrush}"
+                                       FontSize="10"
+                                       Text="{Binding LatestRt4Version}" />
+                            <Button Width="22"
+                                    Height="22"
+                                    Margin="4,0,0,0"
+                                    Padding="0"
+                                    BorderBrush="{StaticResource DarkBorderBrush}"
+                                    BorderThickness="1"
+                                    Classes="OutsideNavigator"
+                                    Command="{Binding RefreshRt4Version}"
+                                    Content="↻"
+                                    FontSize="12"
+                                    ToolTip.Tip="Refresh latest RT4 version" />
+                        </StackPanel>
+                    </Grid>
 
                     <Button
                             Margin="0,0,0,4"
