@@ -34,7 +34,8 @@ namespace Saradomin.Infrastructure.Services
             using var httpClient = new HttpClient();
             {
                 var response = await httpClient.GetAsync(ClientHashURL, cancellationToken);
-                return await response.Content.ReadAsStringAsync(cancellationToken);
+                response.EnsureSuccessStatusCode();
+                return (await response.Content.ReadAsStringAsync(cancellationToken)).Trim();
             }
         }
 
@@ -52,28 +53,44 @@ namespace Saradomin.Infrastructure.Services
 
             using (var httpClient = new HttpClient())
             {
-                var response = await httpClient.GetAsync(ClientDownloadURL, cancellationToken);
-                var contentLength = response.Content.Headers.ContentLength ?? 12 * 1024 * 1024 * 1024f;
+                using var response = await httpClient.GetAsync(
+                    ClientDownloadURL,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellationToken
+                );
+                response.EnsureSuccessStatusCode();
 
-                using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                using var outFileStream = File.OpenWrite(targetPath);
+                var contentLength = response.Content.Headers.ContentLength;
 
-                var data = new byte[1024];
-                var totalRead = 0;
+                await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                await using var outFileStream = new FileStream(
+                    targetPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None
+                );
 
-                while (responseStream.Position < contentLength)
+                var data = new byte[64 * 1024];
+                long totalRead = 0;
+
+                while (true)
                 {
-                    var dataRead = await responseStream.ReadAsync(data, 0, data.Length, cancellationToken);
+                    var dataRead = await responseStream.ReadAsync(data.AsMemory(0, data.Length), cancellationToken);
+                    if (dataRead == 0)
+                        break;
 
-                    if (dataRead <= 0)
-                        throw new IOException("Unexpected 0-byte read in network stream.");
-
-                    await outFileStream.WriteAsync(data[0..dataRead], cancellationToken);
+                    await outFileStream.WriteAsync(data.AsMemory(0, dataRead), cancellationToken);
                     totalRead += dataRead;
 
-                    CurrentDownloadProgress = totalRead / contentLength;
-                    DownloadProgressChanged?.Invoke(this, CurrentDownloadProgress);
+                    if (contentLength.HasValue && contentLength.Value > 0)
+                    {
+                        CurrentDownloadProgress = (float)totalRead / contentLength.Value;
+                        DownloadProgressChanged?.Invoke(this, CurrentDownloadProgress);
+                    }
                 }
+
+                CurrentDownloadProgress = 1.0f;
+                DownloadProgressChanged?.Invoke(this, CurrentDownloadProgress);
             }
         }
 
