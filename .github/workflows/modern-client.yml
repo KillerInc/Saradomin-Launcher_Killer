@@ -1,0 +1,66 @@
+name: Modern Killer Launcher
+
+on:
+  push:
+    branches: [ modern-client ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: modern-killer-launcher
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build launcher
+        shell: pwsh
+        run: |
+          dotnet publish Saradomin/Saradomin.csproj `
+            --runtime win-x64 `
+            --self-contained `
+            -c Release `
+            -p:PublishTrimmed=false `
+            -p:PublishReadyToRun=true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true
+
+          $out = "Saradomin/bin/Release/net6.0/win-x64/publish/Saradomin.exe"
+          if (!(Test-Path $out)) { throw "Launcher executable was not produced." }
+          Copy-Item $out "$env:RUNNER_TEMP/OSRS-Client-Killer-Edition-Launcher.exe"
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: OSRS-Client-Killer-Edition-Launcher
+          path: ${{ runner.temp }}/OSRS-Client-Killer-Edition-Launcher.exe
+          if-no-files-found: error
+
+      - name: Publish rolling preview
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: modern-launcher-latest
+          name: OSRS Client Killer Edition - Launcher Preview
+          prerelease: true
+          make_latest: false
+          files: ${{ runner.temp }}/OSRS-Client-Killer-Edition-Launcher.exe
+          body: |
+            Rolling launcher preview for the modern revision-530 Killer client.
+            The launcher downloads modern-client-latest and manages one JAR per client plugin.
