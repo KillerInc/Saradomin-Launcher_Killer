@@ -45,11 +45,6 @@ namespace Saradomin.Model.Settings.Client
         [JsonPropertyName("js5_port")]
         public ushort CacheServerPort { get; set; } = 43595;
 
-        [JsonPropertyName("ui_scale")]
-        public double UiScale { get; set; } = 1.0;
-
-        [JsonPropertyName("font_scale")]
-        public double FontScale { get; set; } = 1.0;
 
         [JsonPropertyName("fps")]
         public int Fps { get; set; } = 0;
