@@ -33,6 +33,7 @@ jobs:
       - name: Build launcher
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Continue"
           dotnet publish Saradomin/Saradomin.csproj `
             --runtime win-x64 `
             --self-contained `
@@ -40,11 +41,19 @@ jobs:
             -p:PublishTrimmed=false `
             -p:PublishReadyToRun=true `
             -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true
+            -p:IncludeNativeLibrariesForSelfExtract=true 2>&1 | Tee-Object -FilePath modern-launcher-build.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
           $out = "Saradomin/bin/Release/net6.0/win-x64/publish/Saradomin.exe"
           if (!(Test-Path $out)) { throw "Launcher executable was not produced." }
           Copy-Item $out "$env:RUNNER_TEMP/OSRS-Client-Killer-Edition-Launcher.exe"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: modern-launcher-build-log
+          path: modern-launcher-build.log
 
       - name: Upload preview artifact
         uses: actions/upload-artifact@v5
