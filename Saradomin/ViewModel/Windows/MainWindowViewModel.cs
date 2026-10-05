@@ -47,7 +47,6 @@ namespace Saradomin.ViewModel.Windows
             _settingsService = settingsService;
             Launcher = _settingsService.Launcher;
 
-            Message.Subscribe<MainViewLoadedMessage>(this, MainViewLoaded);
             Message.Subscribe<NotificationBoxStateChangedMessage>(this, NotificatationBoxStateChanged);
             Message.Subscribe<ClientLaunchRequestedMessage>(this, ClientLaunchRequested);
 
