@@ -21,6 +21,7 @@
               IsVisible="{Binding DimContent}"
               Opacity="0.7"
               ZIndex="99999" />
+
         <Border BorderBrush="{StaticResource DarkBorderBrush}"
                 BorderThickness="2">
             <Grid RowDefinitions="24,*,32">
@@ -29,14 +30,12 @@
                       Background="{StaticResource DarkBackgroundBrush}"
                       ColumnDefinitions="Auto,*,Auto"
                       PointerPressed="TitleBar_MouseDown">
-
                     <Button Grid.Column="0"
                             Classes="CloseButton"
                             Command="{Binding ExitApplication}"
                             IsVisible="{Binding Launcher.PlaceCloseButtonOnLeft}" />
 
                     <TextBlock Grid.Column="1"
-                               Grid.ColumnSpan="4"
                                HorizontalAlignment="Stretch"
                                VerticalAlignment="Center"
                                FontSize="14"
@@ -51,72 +50,14 @@
                             IsVisible="{Binding !Launcher.PlaceCloseButtonOnLeft}" />
                 </Grid>
 
-                <Grid Grid.Row="1"
-                      Margin="0,2,4,0"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Top"
-                      ColumnDefinitions="Auto,Auto,Auto,Auto"
-                      Grid.ZIndex="1">
-                    <Button Grid.Column="0"
-                            Classes="OutsideNavigator"
-                            Command="{Binding LaunchPage}"
-                            CommandParameter="issues"
-                            Content="found a bug?"
-                            CornerRadius="8,0,0,8" />
-
-                    <Button Grid.Column="1"
-                            Classes="OutsideNavigator"
-                            Command="{Binding LaunchPage}"
-                            CommandParameter="hiscores"
-                            Content="hi-scores" />
-
-                    <Button Grid.Column="2"
-                            Classes="OutsideNavigator"
-                            Command="{Binding LaunchPage}"
-                            CommandParameter="discord"
-                            Content="discord" />
-
-                    <Button Grid.Column="3"
-                            Classes="OutsideNavigator"
-                            Command="{Binding LaunchPage}"
-                            CommandParameter="forums"
-                            Content="forums"
-                            CornerRadius="0,8,8,0" />
-                </Grid>
-
                 <TabControl Grid.Row="1"
                             Background="Transparent"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             Padding="0"
                             Classes="PageSelector">
-                    <TabItem Width="95"
+                    <TabItem Width="110"
                              HorizontalContentAlignment="Center"
                              CornerRadius="0,0,0,8"
-                             Header="what's new">
-                        <Border Margin="4,4,4,0"
-                                Background="{StaticResource MediumBackgroundBrush}"
-                                BorderBrush="{StaticResource SemiLightMediumBorderBrush}"
-                                BorderThickness="1,1,1,0"
-                                ClipToBounds="True"
-                                CornerRadius="6,6,0,0">
-                            <ScrollViewer HorizontalAlignment="Stretch"
-                                          Classes="MainViewScrollViewer"
-                                          ClipToBounds="True"
-                                          HorizontalScrollBarVisibility="Hidden"
-                                          VerticalScrollBarVisibility="Visible">
-                                <TextBlock Classes="NewsRenderView"
-                                           MaxWidth="768"
-                                           Inlines="{Binding HtmlInlines}"
-                                           HorizontalAlignment="Stretch"
-                                           VerticalAlignment="Stretch" 
-                                           TextWrapping="Wrap"/>
-                            </ScrollViewer>
-                        </Border>
-                    </TabItem>
-
-                    <TabItem Width="95"
-                             HorizontalContentAlignment="Center"
-                             CornerRadius="0,0,0,0"
                              Header="settings">
                         <Border Margin="4,4,4,0"
                                 Background="{StaticResource MediumBackgroundBrush}"
@@ -126,13 +67,13 @@
                             <ScrollViewer Classes="MainViewScrollViewer"
                                           HorizontalScrollBarVisibility="Hidden"
                                           VerticalScrollBarVisibility="Visible">
-                                <controls:SettingsView VerticalAlignment="Stretch" 
+                                <controls:SettingsView VerticalAlignment="Stretch"
                                                        MaxHeight="500"/>
                             </ScrollViewer>
                         </Border>
                     </TabItem>
-                    
-                    <TabItem Width="95"
+
+                    <TabItem Width="110"
                              HorizontalContentAlignment="Center"
                              CornerRadius="0,0,8,0"
                              Header="singleplayer">
@@ -161,8 +102,7 @@
                             VerticalAlignment="Stretch"
                             Classes="OutsideNavigator"
                             Command="{Binding ExecuteLaunchSequence}"
-                            Content="{Binding LaunchText}">
-                    </Button>
+                            Content="{Binding LaunchText}" />
                 </Border>
             </Grid>
         </Border>
