@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Saradomin.Utilities;
@@ -22,45 +21,34 @@ namespace Saradomin.Infrastructure.Services
             EnsurePluginRepositoryPathSane();
 
             return Task.FromResult(Directory
-                .GetDirectories(PluginRepositoryPath, "*", SearchOption.TopDirectoryOnly)
-                .Select(x => Path.GetFileName(x)).ToList());
+                .GetFiles(PluginRepositoryPath, "*.jar", SearchOption.TopDirectoryOnly)
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList()!);
         }
 
-        public async Task<bool> IsPluginInstalled(string pluginName)
+        public async Task<bool> IsPluginInstalled(string pluginId)
         {
             EnsurePluginRepositoryPathSane();
-
             return (await EnumerateInstalledPlugins())
-                .Contains(pluginName);
+                .Contains(pluginId, StringComparer.OrdinalIgnoreCase);
         }
 
-        public Task UninstallPlugin(string pluginName)
+        public Task UninstallPlugin(string pluginId)
         {
             EnsurePluginRepositoryPathSane();
-            var pluginPath = GetPluginDirectoryPath(pluginName);
+            var pluginPath = Path.Combine(PluginRepositoryPath, pluginId + ".jar");
 
-            if (Directory.Exists(pluginPath))
-            {
-                Directory.Delete(pluginPath, true);
-            }
+            if (File.Exists(pluginPath))
+                File.Delete(pluginPath);
 
             return Task.CompletedTask;
         }
 
-        public Task InstallPlugin(ZipArchive zipArchive, string pluginName)
-        {
-            throw new NotSupportedException("Feature not supported yet.");
-        }
-
-        private string GetPluginDirectoryPath(string pluginName)
-            => Path.Combine(PluginRepositoryPath, pluginName);
-
         private void EnsurePluginRepositoryPathSane()
         {
             if (string.IsNullOrWhiteSpace(PluginRepositoryPath))
-            {
                 throw new InvalidOperationException("Plugin repository path has not been set.");
-            }
 
             Directory.CreateDirectory(PluginRepositoryPath);
         }
