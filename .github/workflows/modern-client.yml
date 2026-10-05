@@ -51,6 +51,17 @@ jobs:
           Copy-Item $out $exe
           Compress-Archive -Path $exe -DestinationPath $zip -Force
 
+      - name: Smoke-test launcher startup
+        shell: pwsh
+        run: |
+          $exe = "$env:RUNNER_TEMP/OSRS-Client-Killer-Edition-Launcher.exe"
+          $proc = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          if ($proc.HasExited) {
+            throw "Launcher exited during startup smoke test with exit code $($proc.ExitCode)."
+          }
+          Stop-Process -Id $proc.Id -Force
+
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v5
@@ -83,14 +94,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: modern-launcher-beta.1
-          name: OSRS Client Killer Edition Launcher - Beta 1
-          prerelease: true
-          make_latest: false
+          name: BETA - OSRS Client Killer Edition Launcher - Beta 1
+          prerelease: false
+          make_latest: true
           files: |
             ${{ runner.temp }}/OSRS-Client-Killer-Edition-Launcher.exe
             ${{ runner.temp }}/OSRS-Client-Killer-Edition-Launcher_beta1.zip
           body: |
-            Beta 1 checkpoint of the modern Killer Edition launcher.
+            BETA BUILD - Beta 1 checkpoint of the modern Killer Edition launcher.
 
             Windows x64 self-contained build for testing with the modern revision-530 Killer client.
             The rolling preview channel remains available separately for automatic update testing.
