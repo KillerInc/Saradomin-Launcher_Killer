@@ -60,8 +60,8 @@ namespace Saradomin.ViewModel.Controls
                 
                 UpdateStatusMessage($"Installing {pluginInfo.Name}...");
 
-                await _pluginDownloadService.DownloadPluginFiles(
-                    pluginInfo.Name,
+                await _pluginDownloadService.DownloadPlugin(
+                    pluginInfo,
                     _pluginManagementService.PluginRepositoryPath
                 );
 
@@ -94,7 +94,7 @@ namespace Saradomin.ViewModel.Controls
                 
                 UpdateStatusMessage($"Uninstalling {pluginInfo.Name}...");
                 
-                await _pluginManagementService.UninstallPlugin(pluginInfo.Name);
+                await _pluginManagementService.UninstallPlugin(pluginInfo.Id);
                 pluginInfo.Installed = false;
                 
                 PluginList = new(PluginList.OrderByDescending(x => x.Installed));
@@ -132,7 +132,7 @@ namespace Saradomin.ViewModel.Controls
 
                 foreach (var plugin in updatablePlugins)
                 {
-                    PluginList.Remove(PluginList.First(x => x.Name == plugin.Name));
+                    PluginList.Remove(PluginList.First(x => x.Id == plugin.Id));
                     PluginList.Add(plugin);
                 }
 
@@ -158,10 +158,10 @@ namespace Saradomin.ViewModel.Controls
                 
                 UpdateStatusMessage($"Updating {pluginInfo.Name}...");
                 
-                await _pluginDownloadService.DownloadPluginFiles(pluginInfo.Name, _pluginManagementService.PluginRepositoryPath);
+                await _pluginDownloadService.DownloadPlugin(pluginInfo, _pluginManagementService.PluginRepositoryPath);
                 await RefreshPluginCollections();
 
-                var newInfo = PluginList.First(x => x.Name == pluginInfo.Name);
+                var newInfo = PluginList.First(x => x.Id == pluginInfo.Id);
                 if (newInfo.Version != pluginInfo.Version)
                 {
                     NotificationBox.DisplayNotification(
