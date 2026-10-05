@@ -51,38 +51,21 @@
                                     DockPanel.Dock="Top"
                                     Header="singleplayer launch">
                 <Grid Margin="4,2,4,2"
-                      ColumnDefinitions="108,140,108"
-                      RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                      ColumnDefinitions="120,140,120"
+                      RowDefinitions="25,25,25,25"
                       HorizontalAlignment="Center">
 
+                    <!-- Row 1: headers + Update -->
                     <TextBlock Grid.Row="0"
                                Grid.Column="0"
-                               Margin="0,0,4,2"
-                               HorizontalAlignment="Center"
-                               Foreground="Black"
-                               FontSize="9"
-                               Text="Current Version" />
-
-                    <TextBlock Grid.Row="0"
-                               Grid.Column="2"
-                               Margin="4,0,0,2"
-                               HorizontalAlignment="Center"
-                               Foreground="Black"
-                               FontSize="9"
-                               Text="Latest Version" />
-
-                    <TextBlock Grid.Row="1"
-                               Grid.Column="0"
-                               Margin="0,0,4,4"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Foreground="Black"
-                               FontSize="9"
-                               Text="{Binding CurrentRt4Version}" />
+                               FontSize="10"
+                               Text="Current Version" />
 
-                    <Button Grid.Row="1"
+                    <Button Grid.Row="0"
                             Grid.Column="1"
-                            Margin="0,0,0,4"
                             Width="140"
                             Height="25"
                             BorderBrush="{StaticResource DarkBorderBrush}"
@@ -95,20 +78,29 @@
                             ZIndex="9999"
                             IsEnabled="{Binding CanDownload}" />
 
-                    <TextBlock Grid.Row="1"
+                    <TextBlock Grid.Row="0"
                                Grid.Column="2"
-                               Margin="4,0,0,4"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="Black"
+                               FontSize="10"
+                               Text="Latest Version" />
+
+                    <!-- Row 2: timestamps + Start -->
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="0"
+                               Margin="0,2,4,2"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Foreground="Black"
                                FontSize="9"
-                               Text="{Binding LatestRt4Version}" />
+                               Text="{Binding CurrentRt4Version}" />
 
-                    <Button Grid.Row="2"
+                    <Button Grid.Row="1"
                             Grid.Column="1"
-                            Margin="0,0,0,4"
+                            Margin="0,2,0,2"
                             Width="140"
-                            Height="25"
+                            Height="21"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
                             Classes="OutsideNavigator"
@@ -119,11 +111,35 @@
                             ZIndex="9999"
                             IsEnabled="{Binding CanLaunch}" />
 
-                    <Button Grid.Row="3"
+                    <Grid Grid.Row="1"
+                          Grid.Column="2"
+                          Margin="4,2,0,2"
+                          ColumnDefinitions="*,22">
+                        <TextBlock Grid.Column="0"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="Black"
+                                   FontSize="9"
+                                   Text="{Binding LatestRt4Version}" />
+                        <Button Grid.Column="1"
+                                Width="20"
+                                Height="20"
+                                Padding="0"
+                                BorderBrush="{StaticResource DarkBorderBrush}"
+                                BorderThickness="1"
+                                Classes="OutsideNavigator"
+                                Command="{Binding RefreshRt4Version}"
+                                Content="R"
+                                FontSize="9"
+                                ToolTip.Tip="Refresh latest version" />
+                    </Grid>
+
+                    <!-- Row 3: backup -->
+                    <Button Grid.Row="2"
                             Grid.Column="1"
-                            Margin="0,0,0,4"
+                            Margin="0,2,0,2"
                             Width="140"
-                            Height="25"
+                            Height="21"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
                             Classes="OutsideNavigator"
@@ -133,11 +149,12 @@
                             Content="Make Backup"
                             ZIndex="9999" />
 
-                    <Button Grid.Row="4"
+                    <!-- Row 4: open backups -->
+                    <Button Grid.Row="3"
                             Grid.Column="1"
-                            Margin="0,0,0,4"
+                            Margin="0,2,0,2"
                             Width="140"
-                            Height="25"
+                            Height="21"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
                             Classes="OutsideNavigator"
@@ -146,7 +163,8 @@
                             FontSize="11"
                             Content="Open Backups"
                             ZIndex="9999" />
-                </Grid></HeaderedContentControl>
+                </Grid>
+            </HeaderedContentControl>
 
             <HeaderedContentControl Margin="2,2,0,0"
                                     Classes="GroupBox"
