@@ -12,17 +12,17 @@ namespace Saradomin.Infrastructure.Services
     {
         public event EventHandler<Tuple<float, bool>> JavaDownloadProgressChanged;
 
-        public async Task DownloadAndSetJava11(ISettingsService settingsService)
+        public async Task DownloadAndSetJava25(ISettingsService settingsService)
         {
-            string downloadUrl = CrossPlatform.GetJava11DownloadUrl();
+            string downloadUrl = CrossPlatform.GetJava25DownloadUrl();
             
             string downloadPath = Path.Combine(
                 CrossPlatform.Get2009scapeHome(),
-                "jre11" + Path.GetExtension(downloadUrl)
+                "jre25" + CrossPlatform.GetJavaRuntimeArchiveExtension()
             );
             string extractedPath = Path.Combine(
                 CrossPlatform.Get2009scapeHome(),
-                "jre11"
+                "jre25"
             );
 
             using (HttpClient httpClient = new HttpClient())
@@ -57,16 +57,16 @@ namespace Saradomin.Infrastructure.Services
             
             if (Directory.Exists(extractedPath)) Directory.Delete(extractedPath, true);
             
-            if (Path.GetExtension(downloadUrl) == ".zip")
+            if (CrossPlatform.GetJavaRuntimeArchiveExtension() == ".zip")
             {
                 // Don't use /tmp because Directory.Move doesn't work cross-partition
-                string tempDir = Path.Combine(CrossPlatform.Get2009scapeHome(), "jre11_temp");
+                string tempDir = Path.Combine(CrossPlatform.Get2009scapeHome(), "jre25_temp");
                 if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
                 await Task.Run(() => ZipFile.ExtractToDirectory(downloadPath, tempDir));
                 Directory.Move(Directory.GetDirectories(tempDir)[0], extractedPath);
                 Directory.Delete(tempDir, true);
             }
-            else if (Path.GetExtension(downloadUrl) == ".gz" || Path.GetExtension(downloadUrl) == ".tar.gz")
+            else
             {
                 Directory.CreateDirectory(extractedPath);
                 await Task.Run(() => CrossPlatform.RunCommandAndGetOutput($"tar xf {downloadPath} -C {extractedPath} --strip-components 1"));
