@@ -25,7 +25,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Restore
         run: dotnet restore
@@ -44,7 +44,7 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true 2>&1 | Tee-Object -FilePath modern-launcher-build.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-          $out = "Saradomin/bin/Release/net6.0/win-x64/publish/Saradomin.exe"
+          $out = "Saradomin/bin/Release/net10.0/win-x64/publish/Saradomin.exe"
           if (!(Test-Path $out)) { throw "Launcher executable was not produced." }
           Copy-Item $out "$env:RUNNER_TEMP/OSRS-Client-Killer-Edition-Launcher.exe"
 
