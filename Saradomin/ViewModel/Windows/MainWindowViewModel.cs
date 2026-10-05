@@ -28,7 +28,7 @@ namespace Saradomin.ViewModel.Windows
 
         private LauncherSettings Launcher { get; }
 
-        public string Title { get; set; } = "2009scape launcher";
+        public string Title { get; set; } = "OSRS Client Killer Edition";
         
         public bool CanLaunch { get; private set; } = true;
         public string LaunchText { get; private set; } = "Play!";
@@ -154,14 +154,14 @@ namespace Saradomin.ViewModel.Windows
 
             try
             {
-                if (!IsJavaVersion11())
+                if (!IsJavaVersion25())
                 {
-                    await _javaUpdateService.DownloadAndSetJava11(_settingsService);
+                    await _javaUpdateService.DownloadAndSetJava25(_settingsService);
                 }
             } catch (Exception e)
             {
                 CanLaunch = true;
-                LaunchText = $"Failed to download and set Java 11: {e.Message}";
+                LaunchText = $"Failed to download and set Java 25: {e.Message}";
                 return;
             }
             
@@ -281,12 +281,12 @@ namespace Saradomin.ViewModel.Windows
             }
         }
 
-        private bool IsJavaVersion11()
+        private bool IsJavaVersion25()
         {
             string javaVersionOutput = CrossPlatform.RunCommandAndGetOutput(
                 $"\"{Launcher.JavaExecutableLocation}\" -version"
             );
-            return javaVersionOutput.Contains("11");
+            return javaVersionOutput.Contains("version \"25") || javaVersionOutput.Contains("openjdk 25");
         }
         
         private void OnClientDownloadProgressUpdated(object sender, float e)
@@ -302,10 +302,10 @@ namespace Saradomin.ViewModel.Windows
             }
             if (e.Item1 >= 0.999f)
             {
-                LaunchText = "Updating... (Extracting Java 11)";
+                LaunchText = "Updating... (Extracting Java 25)";
                 return;
             }
-            LaunchText = $"Updating... (Downloading Java 11 - {e.Item1 * 100:F2}%)";
+            LaunchText = $"Updating... (Downloading Java 25 - {e.Item1 * 100:F2}%)";
         }
     }
 }
