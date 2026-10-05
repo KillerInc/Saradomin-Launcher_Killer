@@ -59,7 +59,7 @@
                     </Grid>
 
                     <Grid Margin="0,0,0,4"
-                          RowDefinitions="Auto, Auto">
+                          RowDefinitions="Auto,Auto">
                         <TextBlock Grid.Row="0"
                                    Margin="3,0,0,2"
                                    HorizontalAlignment="Left"
@@ -69,13 +69,7 @@
                         <ComboBox Grid.Row="1"
                                   Margin="2,0,0,2"
                                   ItemsSource="{Binding ServerProfiles}"
-                                  SelectedItem="{Binding ServerProfile, Converter={StaticResource EnumDescriptionConverter}, Mode=TwoWay}">
-                            <ComboBox.Styles>
-                                <Style Selector="ComboBoxItem">
-                                    <Setter Property="ToolTip.Tip" Value="{x:Null}" />
-                                </Style>
-                            </ComboBox.Styles>
-                        </ComboBox>
+                                  SelectedItem="{Binding ServerProfile, Converter={StaticResource EnumDescriptionConverter}, Mode=TwoWay}" />
                     </Grid>
 
                     <Grid Margin="0,0,0,4"
@@ -108,42 +102,10 @@
                                    Text="{Binding MoveGameStatus}"
                                    TextWrapping="Wrap" />
                     </Grid>
-                </StackPanel>
-            </HeaderedContentControl>
 
-            <HeaderedContentControl Margin="2,2,0,0"
-                                    Classes="GroupBox"
-                                    DockPanel.Dock="Top"
-                                    Header="about this project">
-                <HeaderedContentControl.HeaderTemplate>
-                    <DataTemplate>
-                        <TextBlock HorizontalAlignment="Center"
-                                   Text="{Binding Header}" />
-                    </DataTemplate>
-                </HeaderedContentControl.HeaderTemplate>
-
-                <StackPanel HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock HorizontalAlignment="Center"
-                                   Foreground="{StaticResource DarkForegroundBrush}"
-                                   Text="Made with ❤ by vddCore of " />
-                        <Button Classes="Hyperlink"
-                                Command="{Binding LaunchScapeWebsite}"
-                                Content="2009scape." />
-                    </StackPanel>
-
-                    <TextBlock Text=" " />
-
-                    <TextBlock HorizontalAlignment="Center"
+                    <TextBlock Margin="3,4,0,0"
                                Foreground="{StaticResource DarkForegroundBrush}"
                                Text="{Binding VersionString}" />
-
-                    <Button Margin="0,0,0,4"
-                            HorizontalAlignment="Center"
-                            Classes="Hyperlink"
-                            Command="{Binding LaunchProjectWebsite}"
-                            Content="visit project website" />
                 </StackPanel>
             </HeaderedContentControl>
         </DockPanel>
@@ -153,92 +115,39 @@
             <HeaderedContentControl Classes="GroupBox"
                                     DockPanel.Dock="Top"
                                     Header="client settings">
-                <Grid RowDefinitions="Auto,*"
-                      Margin="0,0,0,4">
-                    <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*">
-                        <Grid Grid.Column="0"
-                              RowDefinitions="Auto,Auto">
-                            <TextBlock Grid.Row="0"
-                                       Margin="0,0,8,0"
-                                       Foreground="{StaticResource DarkForegroundBrush}"
-                                       Text="UI scale" />
+                <Grid Margin="0,0,0,4"
+                      ColumnDefinitions="Auto,*"
+                      RowDefinitions="Auto,Auto">
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="0"
+                               Margin="0,0,8,0"
+                               Foreground="{StaticResource DarkForegroundBrush}"
+                               Text="Target FPS (0=auto)" />
 
-                            <NumericUpDown Grid.Row="1"
-                                           Width="55"
-                                           Height="28"
-                                           Margin="0,2,8,0"
-                                           HorizontalAlignment="Left"
-                                           HorizontalContentAlignment="Right"
-                                           AllowSpin="True"
-                                           Classes="NormalNumericUpDown"
-                                           ClipValueToMinMax="True"
-                                           FormatString="0.0#"
-                                           Increment="0.1"
-                                           Maximum="4"
-                                           Minimum="0.5"
-                                           ParsingNumberStyle="Number"
-                                           ShowButtonSpinner="True"
-                                           Value="{Binding Client.UiScale, Mode=TwoWay}" />
-                        </Grid>
-
-                        <Grid Grid.Column="1"
-                              RowDefinitions="Auto,Auto">
-                            <TextBlock Grid.Row="0"
-                                       Margin="0,0,8,0"
-                                       Foreground="{StaticResource DarkForegroundBrush}"
-                                       Text="Font scale" />
-
-                            <NumericUpDown Grid.Row="1"
-                                           Width="55"
-                                           Height="28"
-                                           Margin="0,2,8,0"
-                                           HorizontalAlignment="Left"
-                                           HorizontalContentAlignment="Right"
-                                           AllowSpin="True"
-                                           Classes="NormalNumericUpDown"
-                                           ClipValueToMinMax="True"
-                                           FormatString="0.0#"
-                                           Increment="0.1"
-                                           Maximum="2"
-                                           Minimum="0.5"
-                                           ParsingNumberStyle="Number"
-                                           ShowButtonSpinner="True"
-                                           Value="{Binding Client.FontScale, Mode=TwoWay}" />
-                        </Grid>
-
-                        <Grid Grid.Column="2"
-                              RowDefinitions="Auto,Auto">
-                            <TextBlock Grid.Row="0"
-                                       Margin="0,0,4,0"
-                                       Foreground="{StaticResource DarkForegroundBrush}"
-                                       Text="Target FPS (0=auto)" />
-
-                            <NumericUpDown Grid.Row="1"
-                                           Width="55"
-                                           Height="28"
-                                           Margin="0,2,0,0"
-                                           HorizontalAlignment="Left"
-                                           HorizontalContentAlignment="Right"
-                                           AllowSpin="True"
-                                           Classes="NormalNumericUpDown"
-                                           ClipValueToMinMax="True"
-                                           FormatString="0"
-                                           Maximum="1000"
-                                           Minimum="0"
-                                           ParsingNumberStyle="Integer"
-                                           ShowButtonSpinner="True"
-                                           Value="{Binding Client.Fps, Mode=TwoWay}" />
-                        </Grid>
-                    </Grid>
+                    <NumericUpDown Grid.Row="1"
+                                   Grid.Column="0"
+                                   Width="70"
+                                   Height="28"
+                                   Margin="0,2,0,0"
+                                   HorizontalAlignment="Left"
+                                   HorizontalContentAlignment="Right"
+                                   AllowSpin="True"
+                                   Classes="NormalNumericUpDown"
+                                   ClipValueToMinMax="True"
+                                   FormatString="0"
+                                   Maximum="1000"
+                                   Minimum="0"
+                                   ParsingNumberStyle="Integer"
+                                   ShowButtonSpinner="True"
+                                   Value="{Binding Client.Fps, Mode=TwoWay}" />
                 </Grid>
             </HeaderedContentControl>
-            
+
             <HeaderedContentControl Classes="GroupBox"
                                     Header="plugin management"
                                     DockPanel.Dock="Top">
-                <controls:PluginManagerView MaxHeight="346"/>
+                <controls:PluginManagerView MaxHeight="400"/>
             </HeaderedContentControl>
         </DockPanel>
-        
     </Grid>
 </UserControl>
