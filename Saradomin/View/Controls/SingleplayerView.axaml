@@ -52,13 +52,14 @@
                                     Header="singleplayer launch">
                 <Grid Margin="4,2,4,2"
                       ColumnDefinitions="*,140,*"
-                      RowDefinitions="25,25,25,25"
+                      RowDefinitions="25,29,29,29"
                       HorizontalAlignment="Stretch">
 
                     <!-- Row 1: Current | Update + Refresh | Latest -->
                     <TextBlock Grid.Row="0"
                                Grid.Column="0"
-                               HorizontalAlignment="Center"
+                               HorizontalAlignment="Right"
+                               Margin="0,0,10,0"
                                VerticalAlignment="Center"
                                Foreground="Black"
                                FontSize="9"
@@ -96,7 +97,8 @@
 
                     <TextBlock Grid.Row="0"
                                Grid.Column="2"
-                               HorizontalAlignment="Center"
+                               HorizontalAlignment="Left"
+                               Margin="10,0,0,0"
                                VerticalAlignment="Center"
                                Foreground="Black"
                                FontSize="9"
@@ -105,8 +107,8 @@
                     <!-- Row 2: Current date | Start | Latest date -->
                     <TextBlock Grid.Row="1"
                                Grid.Column="0"
-                               Margin="0,2,4,2"
-                               HorizontalAlignment="Center"
+                               Margin="0,0,10,4"
+                               HorizontalAlignment="Right"
                                VerticalAlignment="Center"
                                Foreground="Black"
                                FontSize="8"
@@ -114,9 +116,9 @@
 
                     <Button Grid.Row="1"
                             Grid.Column="1"
-                            Margin="0,2,0,2"
+                            Margin="0,0,0,4"
                             Width="140"
-                            Height="21"
+                            Height="25"
                             HorizontalAlignment="Center"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
@@ -130,8 +132,8 @@
 
                     <TextBlock Grid.Row="1"
                                Grid.Column="2"
-                               Margin="4,2,0,2"
-                               HorizontalAlignment="Center"
+                               Margin="10,0,0,4"
+                               HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                Foreground="Black"
                                FontSize="8"
@@ -140,9 +142,9 @@
                     <!-- Row 3 -->
                     <Button Grid.Row="2"
                             Grid.Column="1"
-                            Margin="0,2,0,2"
+                            Margin="0,0,0,4"
                             Width="140"
-                            Height="21"
+                            Height="25"
                             HorizontalAlignment="Center"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
@@ -156,9 +158,9 @@
                     <!-- Row 4 -->
                     <Button Grid.Row="3"
                             Grid.Column="1"
-                            Margin="0,2,0,2"
+                            Margin="0,0,0,4"
                             Width="140"
-                            Height="21"
+                            Height="25"
                             HorizontalAlignment="Center"
                             BorderBrush="{StaticResource DarkBorderBrush}"
                             BorderThickness="1"
