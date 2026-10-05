@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Text.Json;
+using System.Globalization;
 using Saradomin.Utilities;
 
 namespace Saradomin.Infrastructure.Services
@@ -35,7 +36,7 @@ namespace Saradomin.Infrastructure.Services
             }
 
             return Directory.Exists(CrossPlatform.GetSingleplayerHome())
-                ? "Legacy"
+                ? "Unknown"
                 : "Not installed";
         }
 
@@ -52,13 +53,21 @@ namespace Saradomin.Infrastructure.Services
             await using var stream = await response.Content.ReadAsStreamAsync();
             using var document = await JsonDocument.ParseAsync(stream);
 
-            if (document.RootElement.TryGetProperty("short_id", out var shortId))
-                return shortId.GetString() ?? "Unknown";
-
-            if (document.RootElement.TryGetProperty("id", out var id))
+            if (document.RootElement.TryGetProperty("committed_date", out var committedDate))
             {
-                var full = id.GetString() ?? string.Empty;
-                return full.Length > 8 ? full.Substring(0, 8) : full;
+                var raw = committedDate.GetString();
+                if (!string.IsNullOrWhiteSpace(raw)
+                    && DateTimeOffset.TryParse(
+                        raw,
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.RoundtripKind,
+                        out var timestamp))
+                {
+                    return timestamp.ToLocalTime().ToString(
+                        "dd/MM/yy-HH:mm:ss",
+                        CultureInfo.InvariantCulture
+                    );
+                }
             }
 
             return "Unknown";
