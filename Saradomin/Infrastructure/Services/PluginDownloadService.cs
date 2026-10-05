@@ -1,220 +1,210 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.IO.Compression;
 using System.Net.Http;
-using System.Text.RegularExpressions;
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using GitLabApiClient;
-using GitLabApiClient.Models.Trees.Responses;
 using Saradomin.Model;
-using Saradomin.View.Windows;
 
 namespace Saradomin.Infrastructure.Services
 {
     public class PluginDownloadService : IPluginDownloadService
     {
-        private const string GroupName = "2009scape";
-        private const string ProjectName = "Tools/client-plugins";
-        private const string BranchName = "master";
+        private const string CatalogUrl =
+            "https://raw.githubusercontent.com/KillerInc/RT4-Client-Killer/modern-client/plugin-catalog.json";
 
-        private readonly GitLabClient _gitLabClient;
-        private static IList<Tree> _cachedQuery;
+        private static readonly HttpClient Http = new HttpClient();
 
-        public PluginDownloadService()
+        private sealed class CatalogDocument
         {
-            _gitLabClient = new GitLabClient("https://gitlab.com");
+            [JsonPropertyName("schemaVersion")]
+            public int SchemaVersion { get; set; }
+
+            [JsonPropertyName("plugins")]
+            public List<CatalogPlugin> Plugins { get; set; } = new();
         }
 
-        private async Task PerformInitialQuery()
+        private sealed class CatalogPlugin
         {
-            _cachedQuery = await _gitLabClient.Trees.GetAsync($"{GroupName}/{ProjectName}", o =>
+            [JsonPropertyName("id")]
+            public string Id { get; set; } = string.Empty;
+
+            [JsonPropertyName("name")]
+            public string Name { get; set; } = string.Empty;
+
+            [JsonPropertyName("author")]
+            public string Author { get; set; } = string.Empty;
+
+            [JsonPropertyName("description")]
+            public string Description { get; set; } = string.Empty;
+
+            [JsonPropertyName("version")]
+            public string Version { get; set; } = "0.0.0";
+
+            [JsonPropertyName("downloadUrl")]
+            public string DownloadUrl { get; set; } = string.Empty;
+
+            [JsonPropertyName("sha256")]
+            public string Sha256 { get; set; } = string.Empty;
+        }
+
+        public async Task<List<PluginInfo>> GetAllMetadata(
+            string pluginRepositoryPath,
+            bool isUpdateCheck,
+            bool writePersistentUpdateFlag)
+        {
+            Directory.CreateDirectory(pluginRepositoryPath);
+
+            using var response = await Http.GetAsync(CatalogUrl);
+            response.EnsureSuccessStatusCode();
+
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            var catalog = await JsonSerializer.DeserializeAsync<CatalogDocument>(
+                stream,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            ) ?? new CatalogDocument();
+
+            if (catalog.SchemaVersion != 1)
+                throw new InvalidDataException($"Unsupported plugin catalog schema {catalog.SchemaVersion}.");
+
+            var result = new List<PluginInfo>();
+            foreach (var entry in catalog.Plugins)
+            {
+                if (string.IsNullOrWhiteSpace(entry.Id)
+                    || string.IsNullOrWhiteSpace(entry.DownloadUrl))
+                    continue;
+
+                var info = new PluginInfo(entry.Id)
                 {
-                    o.Recursive = true;
-                    o.Reference = BranchName;
-                }
-            );
-        }
+                    Name = string.IsNullOrWhiteSpace(entry.Name) ? entry.Id : entry.Name,
+                    Author = entry.Author ?? string.Empty,
+                    Description = entry.Description ?? string.Empty,
+                    Version = string.IsNullOrWhiteSpace(entry.Version) ? "0.0.0" : entry.Version,
+                    DownloadUrl = entry.DownloadUrl,
+                    Sha256 = entry.Sha256 ?? string.Empty
+                };
 
-        public async Task<List<string>> FetchPluginMetadataPaths()
-        {
-            if (_cachedQuery == null) await PerformInitialQuery();
+                var localPath = GetPluginPath(pluginRepositoryPath, info.Id);
+                info.Installed = File.Exists(localPath);
 
-            return _cachedQuery
-                .Where(x => x.Type == "blob" && x.Path.Contains("properties"))
-                .Select(x => x.Path)
-                .ToList();
-        }
-        
-        public async Task<List<string>> FetchFileListForPlugin(string pluginName)
-        {
-            if (_cachedQuery == null) await PerformInitialQuery();
-
-            return _cachedQuery
-                .Where(x => x.Path.Contains(pluginName) && x.Type == "blob")
-                .Select(x => x.Path)
-                .ToList();
-        }
-
-        public async Task DownloadPluginFiles(string pluginName, string pluginRepositoryPath)
-        {
-            var directoryPath = Path.Combine(pluginRepositoryPath, pluginName);
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-            else
-            {
-                foreach (var file in Directory.EnumerateFiles(directoryPath))
+                if (info.Installed)
                 {
-                    File.Delete(file);
+                    var localVersion = ReadInstalledVersion(localPath);
+                    info.UpdateAvailable = !string.Equals(
+                        localVersion,
+                        info.Version,
+                        StringComparison.OrdinalIgnoreCase
+                    );
                 }
-            }
-            
-            var pluginFiles = await FetchFileListForPlugin(pluginName);
-            foreach (var filePath in pluginFiles)
-            {
-                var file = await _gitLabClient.Files.GetAsync($"{GroupName}/{ProjectName}", filePath, BranchName);
 
-                var downloadDirectoryPath = Path.Combine(pluginRepositoryPath, Path.GetDirectoryName(filePath)!);
-                var downloadFilePath = Path.Combine(pluginRepositoryPath, filePath);
-                
-                Directory.CreateDirectory(downloadDirectoryPath);
-                
-                await File.WriteAllBytesAsync(
-                    downloadFilePath,
-                    Convert.FromBase64String(file.Content)
+                if (!isUpdateCheck || info.UpdateAvailable)
+                    result.Add(info);
+            }
+
+            return result;
+        }
+
+        public async Task DownloadPlugin(PluginInfo pluginInfo, string pluginRepositoryPath)
+        {
+            if (pluginInfo == null)
+                throw new ArgumentNullException(nameof(pluginInfo));
+            if (string.IsNullOrWhiteSpace(pluginInfo.Id))
+                throw new InvalidDataException("Plugin ID is missing.");
+            if (string.IsNullOrWhiteSpace(pluginInfo.DownloadUrl))
+                throw new InvalidDataException($"Plugin {pluginInfo.Id} has no download URL.");
+
+            Directory.CreateDirectory(pluginRepositoryPath);
+            var targetPath = GetPluginPath(pluginRepositoryPath, pluginInfo.Id);
+            var tempPath = targetPath + ".download";
+
+            try
+            {
+                using var response = await Http.GetAsync(
+                    pluginInfo.DownloadUrl,
+                    HttpCompletionOption.ResponseHeadersRead
                 );
+                response.EnsureSuccessStatusCode();
+
+                await using (var input = await response.Content.ReadAsStreamAsync())
+                await using (var output = File.Create(tempPath))
+                {
+                    await input.CopyToAsync(output);
+                }
+
+                if (!string.IsNullOrWhiteSpace(pluginInfo.Sha256))
+                {
+                    await using var verify = File.OpenRead(tempPath);
+                    using var sha = SHA256.Create();
+                    var digest = Convert.ToHexString(await sha.ComputeHashAsync(verify));
+                    if (!digest.Equals(
+                            pluginInfo.Sha256.Trim(),
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidDataException(
+                            $"Checksum mismatch for plugin {pluginInfo.Name}."
+                        );
+                    }
+                }
+
+                // Validate that this is actually a modern Killer plugin JAR.
+                using (var archive = ZipFile.OpenRead(tempPath))
+                {
+                    if (archive.GetEntry("META-INF/killer-plugin.properties") == null)
+                    {
+                        throw new InvalidDataException(
+                            $"{pluginInfo.Name} is missing META-INF/killer-plugin.properties."
+                        );
+                    }
+                }
+
+                File.Move(tempPath, targetPath, true);
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
             }
         }
 
-        public async Task <List<PluginInfo>> GetAllMetadata (string pluginRepositoryPath, bool isUpdateCheck, bool writePersistentUpdateFlag)
+        private static string GetPluginPath(string repositoryPath, string pluginId)
+            => Path.Combine(repositoryPath, pluginId + ".jar");
+
+        private static string ReadInstalledVersion(string jarPath)
         {
             try
             {
-                var metadataPaths = await FetchPluginMetadataPaths();
-                var infos = new List<PluginInfo>();
+                using var archive = ZipFile.OpenRead(jarPath);
+                var entry = archive.GetEntry("META-INF/killer-plugin.properties");
+                if (entry == null)
+                    return string.Empty;
 
-                foreach (var path in metadataPaths)
+                using var reader = new StreamReader(entry.Open());
+                while (!reader.EndOfStream)
                 {
-                    infos.Add(await ProcessMetadataPath(path, pluginRepositoryPath, isUpdateCheck,
-                        writePersistentUpdateFlag));
-                }
-                
-                return isUpdateCheck ? infos.Where(x => x.UpdateAvailable).ToList() : infos;
-            }
-            catch (HttpRequestException e)
-            {
-                return new List<PluginInfo>();
-            }
-        }
+                    var line = reader.ReadLine();
+                    if (line == null)
+                        continue;
 
-        private async Task<PluginInfo> ProcessMetadataPath(string path, string pluginRepositoryPath, bool isUpdateCheck, bool writePersistentUpdateFlag)
-        {
-            var pluginName = path.Split("/")[0];
-            var pluginFolder = Path.Combine(pluginRepositoryPath, pluginName);
+                    var separator = line.IndexOf('=');
+                    if (separator <= 0)
+                        continue;
 
-            if (!Directory.Exists(pluginFolder))
-                Directory.CreateDirectory(pluginFolder);
-                
-            var filePath = Path.Combine(pluginFolder, "plugin.properties");
-            var fileContent = "";
-            var updateContent = "";
-                
-            if (!File.Exists(filePath) || isUpdateCheck)
-            {
-                var file = await _gitLabClient.Files.GetAsync($"{GroupName}/{ProjectName}", path, BranchName);
-                if (isUpdateCheck && File.Exists(filePath))
-                {
-                    fileContent = await File.ReadAllTextAsync(filePath);
-                    updateContent = file.ContentDecoded;
-                } 
-                else if (isUpdateCheck)
-                    fileContent = updateContent = file.ContentDecoded;
-                else
-                    fileContent = file.ContentDecoded;
-                    
-                if (!isUpdateCheck)
-                {
-                    await File.WriteAllBytesAsync(
-                        filePath,
-                        Convert.FromBase64String(file.Content)
-                    );
-                } 
-            }
-            else if (File.Exists(filePath))
-            {
-                fileContent = await File.ReadAllTextAsync(filePath);
-            }
+                    var key = line.Substring(0, separator).Trim();
+                    if (!key.Equals("VERSION", StringComparison.OrdinalIgnoreCase))
+                        continue;
 
-            var info = ParseInfo(pluginName, fileContent);
-            var updatedInfo = !string.IsNullOrEmpty(updateContent) ? ParseInfo(pluginName, updateContent) : info;
-
-            if (isUpdateCheck && updatedInfo.Version != info.Version)
-            {
-                info.UpdateAvailable = true;
-                if (writePersistentUpdateFlag) WritePluginInfoToFile(info, pluginFolder);
-            }
-                
-            info.Installed = File.Exists(Path.Combine(pluginFolder, "plugin.class"));
-            return info;
-        }
-
-        public static PluginInfo ParseInfo(string pluginName, string text)
-        {
-            var lines = new Regex("\r\n|\r|\n").Split(text);
-            var parsedData = new Dictionary<string, string>();
-            var lastKey = "";
-            
-            foreach (var lineInfo in lines.Select(t => t.Split("=")))
-            {
-                if (parsedData.ContainsKey(lineInfo[0])) continue;
-                if (lineInfo.Length > 1)
-                {
-                    parsedData.Add (lineInfo[0], lineInfo[1].Trim('\'').Trim());
-                    lastKey = lineInfo[0];
-                }
-                else
-                {
-                    parsedData[lastKey] += lineInfo[0];
+                    return line.Substring(separator + 1).Trim();
                 }
             }
-
-            var info = new PluginInfo(pluginName);
-            foreach (var (key, value) in parsedData)
+            catch
             {
-                switch (key.ToLower())
-                {
-                    case "author":
-                        info.Author = value;
-                        break;
-                    case "description":
-                        info.Description = value.Replace("\\", System.Environment.NewLine);
-                        break;
-                    case "version":
-                        info.Version = value;
-                        break;
-                    case "updateavailable":
-                        info.UpdateAvailable = true;
-                        break;
-                }
+                // A damaged/legacy JAR is treated as needing replacement.
             }
 
-            return info;
-        }
-        
-        public static void WritePluginInfoToFile(PluginInfo info, string pluginFolder)
-        {
-            var content = $"NAME={info.Name}\r\n" +
-                          $"AUTHOR={info.Author}\r\n" +
-                          $"DESCRIPTION={info.Description.Replace(System.Environment.NewLine, "\\\r\n")}\r\n" +
-                          $"VERSION={info.Version}";
-
-            if (info.UpdateAvailable)
-                content += "\r\nUPDATEAVAILABLE=1";
-            
-            File.WriteAllText(Path.Combine(pluginFolder, "plugin.properties"), content);
+            return string.Empty;
         }
     }
 }
