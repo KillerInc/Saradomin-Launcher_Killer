@@ -16,8 +16,8 @@ namespace Saradomin.Infrastructure.Services
 
         private float CurrentDownloadProgress { get; set; }
 
-        public string ClientDownloadURL => "https://github.com/KillerInc/RT4-Client-Killer/releases/latest/download/rt4-client-killer.jar";
-        public string ClientHashURL => "https://github.com/KillerInc/RT4-Client-Killer/releases/latest/download/rt4-client-killer.jar.sha256";
+        public string ClientDownloadURL => "https://github.com/KillerInc/RT4-Client-Killer/releases/download/modern-client-latest/osrs-client-killer.jar";
+        public string ClientHashURL => "https://github.com/KillerInc/RT4-Client-Killer/releases/download/modern-client-latest/osrs-client-killer.jar.sha256";
 
         public string PreferredTargetFilePath =>
             CrossPlatform.Get2009scapeExecutable();
