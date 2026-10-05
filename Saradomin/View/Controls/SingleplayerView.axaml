@@ -42,43 +42,9 @@
                     However, we will not import your singleplayer save file into the multiplayer world. If you ever want to play with others, we recommend the multiplayer server.
                 </TextBlock>
 
-                <TextBlock Width="380" TextWrapping="Wrap" Margin="0,10,0,0" Foreground="Black">
-                    If you have any questions, feel free to ask on our Discord or Forums.
-                </TextBlock>
             </StackPanel> 
            </HeaderedContentControl>
                
-            <HeaderedContentControl Classes="GroupBox"
-                                    DockPanel.Dock="Top"
-                                    Header="singleplayer links">
-                <StackPanel Orientation="Vertical">
-                 <Button
-                         Margin="0,0,0,4"
-                         Width="140"
-                         Height="25"
-                         BorderBrush="{StaticResource DarkBorderBrush}"
-                         BorderThickness="1"
-                         Classes="OutsideNavigator"
-                         Command="{Binding LaunchFaq}"
-                         Opacity="1"
-                         FontSize="11"
-                         Content="singleplayer faq"
-                         ZIndex="9999" />
-                 
-                 <Button
-                         Margin="0,0,0,4"
-                         Width="140"
-                         Height="25"
-                         BorderBrush="{StaticResource DarkBorderBrush}"
-                         BorderThickness="1"
-                         Classes="OutsideNavigator"
-                         Command="{Binding LaunchForums}"
-                         Opacity="1"
-                         FontSize="11"
-                         Content="support forums"
-                         ZIndex="9999" />
-                </StackPanel>
-            </HeaderedContentControl>
         </DockPanel>
         <DockPanel Grid.Column="1">
             <HeaderedContentControl Classes="GroupBox"
