@@ -32,6 +32,9 @@ namespace Saradomin.ViewModel.Controls
         public string SingleplayerDownloadText { get; private set; } =
             Directory.Exists(CrossPlatform.GetSingleplayerHome()) ? "Update Singleplayer" : "Download Singleplayer";
         public bool CanLaunch { get; private set; } = File.Exists(CrossPlatform.LocateSingleplayerExecutable());
+        public string CurrentRt4Version { get; private set; } = "RT4 V# --";
+        public string LatestRt4Version { get; private set; } = "Latest RT4 V# --";
+        public bool IsRefreshingRt4Version { get; private set; }
         public TextBox SingleplayerLogsTextBox { get; }
         public bool ShowLogPanel { get; private set; }
         public LauncherSettings Launcher => _settingsService.Launcher;
@@ -61,6 +64,33 @@ namespace Saradomin.ViewModel.Controls
             };
         
             Message.Subscribe<ClientClosedMessage>(this, OnClientClosed);
+
+            CurrentRt4Version = "RT4 V# " + _singleplayerUpdateService.GetInstalledRt4Version();
+            _ = RefreshRt4Version();
+        }
+
+        public async Task RefreshRt4Version()
+        {
+            if (IsRefreshingRt4Version)
+                return;
+
+            IsRefreshingRt4Version = true;
+            LatestRt4Version = "Latest RT4 V# ...";
+
+            try
+            {
+                var latest = await _singleplayerUpdateService.GetLatestRt4Version();
+                LatestRt4Version = "Latest RT4 V# " + latest;
+                CurrentRt4Version = "RT4 V# " + _singleplayerUpdateService.GetInstalledRt4Version();
+            }
+            catch
+            {
+                LatestRt4Version = "Latest RT4 V# ?";
+            }
+            finally
+            {
+                IsRefreshingRt4Version = false;
+            }
         }
 
         private void OnClientClosed(ClientClosedMessage _)
@@ -84,6 +114,8 @@ namespace Saradomin.ViewModel.Controls
                 PrintLog($"Singleplayer Download complete");
                 PrintLog($"");
                 CanLaunch = true;
+                CurrentRt4Version = "RT4 V# " + _singleplayerUpdateService.GetInstalledRt4Version();
+                _ = RefreshRt4Version();
                 return;
             }
 
