@@ -1,15 +1,10 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using Avalonia.Metadata;
 using Glitonea.Mvvm;
 using Glitonea.Mvvm.Messaging;
-using HtmlAgilityPack;
 using Saradomin.Infrastructure;
 using Saradomin.Infrastructure.Services;
 using Saradomin.Model.Settings.Launcher;
@@ -34,7 +29,6 @@ namespace Saradomin.ViewModel.Windows
         public string LaunchText { get; private set; } = "Play!";
 
         public bool DimContent { get; private set; }
-        public InlineCollection HtmlInlines { get; private set; }
 
         public MainWindowViewModel(IClientLaunchService launchService,
             IClientUpdateService updateService,
@@ -70,59 +64,9 @@ namespace Saradomin.ViewModel.Windows
                 await ExecuteLaunchSequence();
         }
 
-        private HtmlNode ConnectionErrorMessage(HtmlDocument doc, string msg)
-        {
-            var failMessage = "<html><body><h3>Not Available<h3><br/>This content is unavailable, likely due to a ";
-            doc.LoadHtml(failMessage + msg + "</body></html>");
-            return doc.DocumentNode;
-        }
-
-        public async void MainViewLoaded(MainViewLoadedMessage _)
-        {
-            using (var httpClient = new HttpClient())
-            {
-                HtmlNode node;
-                var doc = new HtmlDocument();
-
-                try
-                {
-                    var response =
-                        await httpClient.GetAsync("https://2009scape.org/services/m=news/archives/latest.html");
-                    doc.Load(await response.Content.ReadAsStreamAsync());
-                    node = doc.DocumentNode.SelectSingleNode("//div[@class='msgcontents']");
-                }
-                catch (HttpRequestException)
-                {
-                    node = ConnectionErrorMessage(doc, "lack of an internet connection.");
-                }
-                if (node == null)
-                {
-                    // If 2009scape is blocked
-                    node = ConnectionErrorMessage(doc, "blocked internet connection. The stable server should still work.");
-                }
-                var renderer = new HtmlRenderer(node);
-                HtmlInlines = renderer.Render();
-            }
-        }
-
         public void NotificatationBoxStateChanged(NotificationBoxStateChangedMessage msg)
         {
             DimContent = msg.WasOpened;
-        }
-
-        public void LaunchPage(object parameter)
-        {
-            var url = parameter switch
-            {
-                "news" => "https://2009scape.org/services/m=news/archives/latest.html",
-                "issues" => "https://gitlab.com/2009scape/2009scape/-/issues",
-                "hiscores" => "https://2009scape.org/services/m=hiscore/hiscores.html?world=2",
-                "forums" => "https://forum.2009scape.org",
-                "discord" => "https://discord.gg/43YPGND",
-                _ => throw new ArgumentException($"{parameter} is not a valid page parameter.")
-            };
-
-            CrossPlatform.LaunchURL(url);
         }
 
         [DependsOn(nameof(CanLaunch))]
@@ -148,7 +92,7 @@ namespace Saradomin.ViewModel.Windows
             catch (Exception e)
             {
                 CanLaunch = true;
-                LaunchText = $"Failed to update 2009scape: {e.Message}";
+                LaunchText = $"Failed to update client: {e.Message}";
                 return;
             }
 
@@ -185,7 +129,7 @@ namespace Saradomin.ViewModel.Windows
             {
                 NotificationBox.DisplayNotification(
                     "Error",
-                    $"Unable to launch the 2009scape client.\n\n{e.Message}"
+                    $"Unable to launch OSRS Client Killer Edition.\n\n{e.Message}"
                 );
             }
             finally
