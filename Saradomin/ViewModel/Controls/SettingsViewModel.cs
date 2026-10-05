@@ -89,15 +89,6 @@ namespace Saradomin.ViewModel.Controls
            Message.Subscribe<MainViewLoadedMessage>(this, OnMainViewLoaded);
         }
         
-        public void LaunchScapeWebsite()
-            => CrossPlatform.LaunchURL("https://2009scape.org");
-
-        public void OpenPluginTutorial()
-            => CrossPlatform.LaunchURL("https://gitlab.com/2009scape/tools/client-plugins");
-
-        public void LaunchProjectWebsite()
-            => CrossPlatform.LaunchURL("https://gitlab.com/2009scape/Saradomin-Launcher");
-
         public async Task MoveGameLocation()
         {
             var window = Application.Current!.GetMainWindow();
