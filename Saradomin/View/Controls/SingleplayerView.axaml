@@ -51,7 +51,7 @@
                                     DockPanel.Dock="Top"
                                     Header="singleplayer launch">
                 <Grid Margin="4,2,4,2"
-                      ColumnDefinitions="120,162,120"
+                      ColumnDefinitions="105,140,105"
                       RowDefinitions="25,25,25,25"
                       HorizontalAlignment="Center">
 
@@ -66,10 +66,10 @@
 
                     <Grid Grid.Row="0"
                           Grid.Column="1"
-                          Width="162"
-                          ColumnDefinitions="140,22">
+                          Width="140"
+                          ColumnDefinitions="118,22">
                         <Button Grid.Column="0"
-                                Width="140"
+                                Width="118"
                                 Height="25"
                                 BorderBrush="{StaticResource DarkBorderBrush}"
                                 BorderThickness="1"
