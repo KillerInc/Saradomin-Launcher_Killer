@@ -26,6 +26,7 @@ namespace Saradomin.ViewModel.Controls
     public class SingleplayerViewModel : ViewModelBase
     {
         private readonly ISingleplayerUpdateService _singleplayerUpdateService;
+        private readonly IClientUpdateService _clientUpdateService;
         private readonly ISettingsService _settingsService;
         private readonly IJavaUpdateService _javaUpdateService;
 
@@ -44,11 +45,13 @@ namespace Saradomin.ViewModel.Controls
 
         public SingleplayerViewModel(ISettingsService settingsService,
             IJavaUpdateService javaUpdateService,
-            ISingleplayerUpdateService iSingleplayerUpdateService)
+            ISingleplayerUpdateService iSingleplayerUpdateService,
+            IClientUpdateService clientUpdateService)
         {
             _settingsService = settingsService;
             _javaUpdateService = javaUpdateService;
             _singleplayerUpdateService = iSingleplayerUpdateService;
+            _clientUpdateService = clientUpdateService;
             _singleplayerUpdateService.SingleplayerDownloadProgressChanged += OnSingleplayerDownloadProgressChanged;
 
             SingleplayerLogsTextBox = new TextBox
@@ -81,7 +84,41 @@ namespace Saradomin.ViewModel.Controls
             {
                 var latest = await _singleplayerUpdateService.GetLatestRt4Version();
                 LatestRt4Version = latest;
-                CurrentRt4Version = _singleplayerUpdateService.GetInstalledRt4Version();
+
+                var installed = _singleplayerUpdateService.GetInstalledRt4Version();
+
+                // Existing Killer Edition installs can predate the .rt4-version
+                // marker. Recover it safely only when the installed JAR exactly
+                // matches the currently published rolling client.
+                if (installed.Equals("Unknown", StringComparison.OrdinalIgnoreCase)
+                    && File.Exists(_clientUpdateService.PreferredTargetFilePath)
+                    && !latest.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        var localHash = await _clientUpdateService.ComputeLocalClientHashAsync();
+                        var remoteHash = await _clientUpdateService.FetchRemoteClientHashAsync(
+                            CancellationToken.None
+                        );
+
+                        if (!string.IsNullOrWhiteSpace(localHash)
+                            && !string.IsNullOrWhiteSpace(remoteHash)
+                            && localHash.Trim().Equals(
+                                remoteHash.Trim(),
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            await _clientUpdateService.RecordInstalledClientVersionAsync();
+                            installed = _singleplayerUpdateService.GetInstalledRt4Version();
+                        }
+                    }
+                    catch
+                    {
+                        // Leave the installed version unknown if migration cannot
+                        // be verified. Never label an unverified old JAR as current.
+                    }
+                }
+
+                CurrentRt4Version = installed;
             }
             catch
             {
