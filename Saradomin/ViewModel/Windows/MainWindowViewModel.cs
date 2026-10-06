@@ -49,6 +49,7 @@ namespace Saradomin.ViewModel.Windows
 
             Message.Subscribe<NotificationBoxStateChangedMessage>(this, NotificatationBoxStateChanged);
             Message.Subscribe<ClientLaunchRequestedMessage>(this, ClientLaunchRequested);
+            Message.Subscribe<ClientUpdateStatusResetMessage>(this, ClientUpdateStatusReset);
 
             _settingsService.Launcher.JavaExecutableLocation ??= CrossPlatform.LocateJavaExecutable();
         }
@@ -67,6 +68,12 @@ namespace Saradomin.ViewModel.Windows
         public void NotificatationBoxStateChanged(NotificationBoxStateChangedMessage msg)
         {
             DimContent = msg.WasOpened;
+        }
+
+        private void ClientUpdateStatusReset(ClientUpdateStatusResetMessage _)
+        {
+            if (CanLaunch)
+                LaunchText = "Play!";
         }
 
         [DependsOn(nameof(CanLaunch))]
