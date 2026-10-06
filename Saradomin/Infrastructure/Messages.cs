@@ -7,4 +7,5 @@ namespace Saradomin.Infrastructure
     public record SettingsModifiedMessage(string SettingName) : Message;
     public record ClientClosedMessage : Message;
     public record ClientLaunchRequestedMessage : Message;
+    public record ClientUpdateStatusResetMessage : Message;
 }
