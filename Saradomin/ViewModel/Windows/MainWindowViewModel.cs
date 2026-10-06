@@ -184,6 +184,7 @@ namespace Saradomin.ViewModel.Windows
 
             var localClientHash = string.Empty;
             var remoteClientHash = string.Empty;
+            var clientIsLatest = false;
 
             try
             {
@@ -201,16 +202,24 @@ namespace Saradomin.ViewModel.Windows
                 remoteClientHash = await _updateService.FetchRemoteClientHashAsync(CancellationToken.None);
             }
 
-            if (string.IsNullOrEmpty(localClientHash)
-                || remoteClientHash.Trim().ToLower() != localClientHash!.Trim().ToLower())
+            if (!string.IsNullOrEmpty(localClientHash)
+                && !string.IsNullOrEmpty(remoteClientHash)
+                && remoteClientHash.Trim().Equals(
+                    localClientHash.Trim(),
+                    StringComparison.OrdinalIgnoreCase))
             {
+                clientIsLatest = true;
+            }
 
+            if (!clientIsLatest)
+            {
                 LaunchText = $"Updating... (Downloading client: 0%)";
                 Directory.CreateDirectory(CrossPlatform.Get2009scapeHome());
 
                 try
                 {
                     await _updateService.FetchRemoteClientExecutableAsync(CancellationToken.None);
+                    clientIsLatest = true;
                 }
                 catch (Exception)
                 {
@@ -223,6 +232,9 @@ namespace Saradomin.ViewModel.Windows
                     }
                 }
             }
+
+            if (clientIsLatest)
+                await _updateService.RecordInstalledClientVersionAsync();
         }
 
         private bool IsJavaVersion25()

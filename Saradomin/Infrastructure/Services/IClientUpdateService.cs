@@ -15,5 +15,6 @@ namespace Saradomin.Infrastructure.Services
         Task<string> FetchRemoteClientHashAsync(CancellationToken cancellationToken);
         Task FetchRemoteClientExecutableAsync(CancellationToken cancellationToken, string targetPath = null);
         Task<string> ComputeLocalClientHashAsync(string filePath = null);
+        Task RecordInstalledClientVersionAsync();
     }
 }

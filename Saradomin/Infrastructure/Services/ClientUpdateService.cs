@@ -94,6 +94,19 @@ namespace Saradomin.Infrastructure.Services
             }
         }
 
+        public async Task RecordInstalledClientVersionAsync()
+        {
+            try
+            {
+                var version = await Rt4VersionInfo.GetLatestVersion();
+                Rt4VersionInfo.SetInstalledVersion(version);
+            }
+            catch
+            {
+                // A metadata lookup failure must not prevent the client from launching.
+            }
+        }
+
         public async Task<string> ComputeLocalClientHashAsync(string filePath = null)
         {
             filePath ??= PreferredTargetFilePath;
