@@ -35,7 +35,11 @@ namespace Saradomin.Infrastructure.Services
                 )
                 {
                     Arguments =
-                        $"-DclientFps={_settingsService.Client.Fps} "
+                        "--add-opens=java.base/java.lang=ALL-UNNAMED "
+                        + "--add-opens=java.desktop/sun.awt=ALL-UNNAMED "
+                        + "--add-opens=java.desktop/sun.awt.windows=ALL-UNNAMED "
+                        + "--add-opens=java.desktop/sun.java2d=ALL-UNNAMED "
+                        + $"-DclientFps={_settingsService.Client.Fps} "
                         + $"-DclientHomeOverride=\"{CrossPlatform.Get2009scapeHome()}/\" "
                         + $"-jar \"{_clientUpdateService.PreferredTargetFilePath}\"",
                     WorkingDirectory = $"{CrossPlatform.Get2009scapeHome()}",
