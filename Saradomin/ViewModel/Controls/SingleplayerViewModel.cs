@@ -195,6 +195,7 @@ namespace Saradomin.ViewModel.Controls
                 SingleplayerDownloadText = "Update Singleplayer";
                 CanLaunch = true;
                 await RefreshRt4Version();
+                Message.Broadcast<ClientUpdateStatusResetMessage>();
                 return;
             }
 
