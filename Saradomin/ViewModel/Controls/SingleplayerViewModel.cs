@@ -140,19 +140,61 @@ namespace Saradomin.ViewModel.Controls
             _settingsService.Client.ManagementServerAddress = _oldManagementAddress;
         }
 
-        private void OnSingleplayerDownloadProgressChanged(object sender, Tuple<float, bool> e)
+        private async void OnSingleplayerDownloadProgressChanged(object sender, Tuple<float, bool> e)
         {
             float progress = e.Item1;
             bool finished = e.Item2;
             if (finished)
             {
-                SingleplayerDownloadText = "Update Singleplayer";
                 ApplyLatestBackup(PrintLog);
                 PrintLog($"Singleplayer Download complete");
                 PrintLog($"");
+
+                SingleplayerDownloadText = "Updating Client...";
+                PrintLog("Checking RT4 client...");
+
+                try
+                {
+                    var remoteHash = await _clientUpdateService.FetchRemoteClientHashAsync(
+                        CancellationToken.None
+                    );
+
+                    string localHash = string.Empty;
+                    try
+                    {
+                        localHash = await _clientUpdateService.ComputeLocalClientHashAsync();
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        // Missing client: download the current published RT4 build.
+                    }
+
+                    if (string.IsNullOrWhiteSpace(localHash)
+                        || !localHash.Trim().Equals(
+                            remoteHash.Trim(),
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        PrintLog("Downloading latest RT4 client...");
+                        await _clientUpdateService.FetchRemoteClientExecutableAsync(
+                            CancellationToken.None
+                        );
+                        PrintLog("RT4 client download complete");
+                    }
+                    else
+                    {
+                        PrintLog("RT4 client is already current");
+                    }
+
+                    await _clientUpdateService.RecordInstalledClientVersionAsync();
+                }
+                catch (Exception ex)
+                {
+                    PrintLog($"RT4 client update failed: {ex.Message}");
+                }
+
+                SingleplayerDownloadText = "Update Singleplayer";
                 CanLaunch = true;
-                CurrentRt4Version = _singleplayerUpdateService.GetInstalledRt4Version();
-                _ = RefreshRt4Version();
+                await RefreshRt4Version();
                 return;
             }
 
