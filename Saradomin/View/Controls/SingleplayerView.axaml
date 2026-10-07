@@ -15,7 +15,8 @@
                                    Header="singleplayer logs"
                                    IsVisible="{Binding ShowLogPanel}"
                                    >
-               <ScrollViewer HorizontalAlignment="Left"
+               <ScrollViewer x:Name="SingleplayerLogScrollViewer"
+                  HorizontalAlignment="Left"
                   ClipToBounds="True"
                   Height="300"
                   Width="390"
