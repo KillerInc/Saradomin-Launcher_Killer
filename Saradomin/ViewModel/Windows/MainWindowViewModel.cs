@@ -40,6 +40,7 @@ namespace Saradomin.ViewModel.Windows
             _launchService = launchService;
             _updateService = updateService;
             _updateService.DownloadProgressChanged += OnClientDownloadProgressUpdated;
+            _updateService.CacheOverrideDownloadProgressChanged += OnCacheOverrideDownloadProgressUpdated;
             _remoteConfigService = remoteConfigService;
             _javaUpdateService = javaUpdateService;
             _javaUpdateService.JavaDownloadProgressChanged += OnJavaDownloadProgressUpdated;
@@ -92,9 +93,13 @@ namespace Saradomin.ViewModel.Windows
 
             try
             {
-                if (!File.Exists(_updateService.PreferredTargetFilePath) ||
-                    _settingsService.Launcher.CheckForClientUpdatesOnLaunch)
-                    await AttemptUpdate();
+                var checkForUpdates = _settingsService.Launcher.CheckForClientUpdatesOnLaunch;
+                if (!File.Exists(_updateService.PreferredTargetFilePath)
+                    || !File.Exists(_updateService.PreferredCacheOverrideFilePath)
+                    || checkForUpdates)
+                {
+                    await AttemptUpdate(checkForUpdates);
+                }
             }
             catch (Exception e)
             {
@@ -185,63 +190,100 @@ namespace Saradomin.ViewModel.Windows
             _settingsService.Client.WorldListServerPort = relevantServerProfile.WorldListServerPort;
         }
 
-        private async Task AttemptUpdate()
+        private async Task AttemptUpdate(bool checkForUpdates)
         {
             LaunchText = "Updating...";
+            Directory.CreateDirectory(CrossPlatform.Get2009scapeHome());
 
-            var localClientHash = string.Empty;
-            var remoteClientHash = string.Empty;
-            var clientIsLatest = false;
+            var clientReady = await EnsureClientCurrent(checkForUpdates);
+            var overrideReady = await EnsureCacheOverrideCurrent(checkForUpdates);
 
-            try
-            {
-                LaunchText = "Updating... (Computing local checksum)";
-                localClientHash = await _updateService.ComputeLocalClientHashAsync();
-            }
-            catch (FileNotFoundException)
-            {
-                // Ignore. Client hash will stay empty.
-            }
+            if (clientReady && overrideReady)
+                await _updateService.RecordInstalledClientVersionAsync();
+        }
 
-            if (!string.IsNullOrEmpty(localClientHash))
+        private async Task<bool> EnsureClientCurrent(bool checkForUpdates)
+        {
+            var clientPath = _updateService.PreferredTargetFilePath;
+            var clientExists = File.Exists(clientPath);
+            var clientIsLatest = clientExists && !checkForUpdates;
+
+            if (clientExists && checkForUpdates)
             {
+                LaunchText = "Updating... (Computing local client checksum)";
+                var localHash = await _updateService.ComputeLocalClientHashAsync();
+
                 LaunchText = "Updating... (Fetching remote client checksum)";
-                remoteClientHash = await _updateService.FetchRemoteClientHashAsync(CancellationToken.None);
-            }
+                var remoteHash = await _updateService.FetchRemoteClientHashAsync(CancellationToken.None);
 
-            if (!string.IsNullOrEmpty(localClientHash)
-                && !string.IsNullOrEmpty(remoteClientHash)
-                && remoteClientHash.Trim().Equals(
-                    localClientHash.Trim(),
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                clientIsLatest = true;
-            }
-
-            if (!clientIsLatest)
-            {
-                LaunchText = $"Updating... (Downloading client: 0%)";
-                Directory.CreateDirectory(CrossPlatform.Get2009scapeHome());
-
-                try
-                {
-                    await _updateService.FetchRemoteClientExecutableAsync(CancellationToken.None);
-                    clientIsLatest = true;
-                }
-                catch (Exception)
-                {
-                    var clientPath = _updateService.PreferredTargetFilePath;
-
-                    if (!File.Exists(clientPath))
-                    {
-                        LaunchText = "Cannot launch. Missing client executable. Click me again to re-try.";
-                        throw;
-                    }
-                }
+                clientIsLatest = remoteHash.Trim().Equals(
+                    localHash.Trim(),
+                    StringComparison.OrdinalIgnoreCase
+                );
             }
 
             if (clientIsLatest)
-                await _updateService.RecordInstalledClientVersionAsync();
+                return true;
+
+            LaunchText = "Updating... (Downloading client - 0%)";
+            try
+            {
+                await _updateService.FetchRemoteClientExecutableAsync(CancellationToken.None);
+                return true;
+            }
+            catch
+            {
+                if (!File.Exists(clientPath))
+                {
+                    LaunchText = "Cannot launch. Missing client executable. Click me again to re-try.";
+                    throw;
+                }
+
+                // Existing client is still usable if the remote update is temporarily unavailable.
+                return true;
+            }
+        }
+
+        private async Task<bool> EnsureCacheOverrideCurrent(bool checkForUpdates)
+        {
+            var overridePath = _updateService.PreferredCacheOverrideFilePath;
+            var overrideExists = File.Exists(overridePath);
+            var overrideIsLatest = overrideExists && !checkForUpdates;
+
+            if (overrideExists && checkForUpdates)
+            {
+                LaunchText = "Updating... (Computing local UI override checksum)";
+                var localHash = await _updateService.ComputeLocalCacheOverrideHashAsync();
+
+                LaunchText = "Updating... (Fetching remote UI override checksum)";
+                var remoteHash = await _updateService.FetchRemoteCacheOverrideHashAsync(CancellationToken.None);
+
+                overrideIsLatest = remoteHash.Trim().Equals(
+                    localHash.Trim(),
+                    StringComparison.OrdinalIgnoreCase
+                );
+            }
+
+            if (overrideIsLatest)
+                return true;
+
+            LaunchText = "Updating... (Downloading UI override - 0%)";
+            try
+            {
+                await _updateService.FetchRemoteCacheOverrideAsync(CancellationToken.None);
+                return true;
+            }
+            catch
+            {
+                if (!File.Exists(overridePath))
+                {
+                    LaunchText = "Cannot launch. Missing UI override package. Click me again to re-try.";
+                    throw;
+                }
+
+                // Keep a known local override if GitHub is temporarily unavailable.
+                return true;
+            }
         }
 
         private bool IsJavaVersion25()
@@ -255,6 +297,11 @@ namespace Saradomin.ViewModel.Windows
         private void OnClientDownloadProgressUpdated(object sender, float e)
         {
             LaunchText = $"Updating... (Downloading client - {e * 100:F2}%)";
+        }
+
+        private void OnCacheOverrideDownloadProgressUpdated(object sender, float e)
+        {
+            LaunchText = $"Updating... (Downloading UI override - {e * 100:F2}%)";
         }
         private void OnJavaDownloadProgressUpdated(object sender, Tuple<float, bool> e)
         {

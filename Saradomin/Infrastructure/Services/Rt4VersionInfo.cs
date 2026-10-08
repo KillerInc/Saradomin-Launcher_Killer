@@ -13,6 +13,7 @@ namespace Saradomin.Infrastructure.Services
         private const string ReleaseApi =
             "https://api.github.com/repos/KillerInc/RT4-Client-Killer/releases/tags/modern-client-latest";
         private const string ClientAssetName = "osrs-client-killer.jar";
+        private const string CacheOverrideAssetName = "killer-overrides.zip";
         private const string VersionFileName = ".rt4-version";
 
         private static string VersionFilePath =>
@@ -67,17 +68,22 @@ namespace Saradomin.Infrastructure.Services
                 || assets.ValueKind != JsonValueKind.Array)
                 return "Unknown";
 
+            DateTimeOffset? newestTimestamp = null;
+
             foreach (var asset in assets.EnumerateArray())
             {
-                if (!asset.TryGetProperty("name", out var name)
-                    || !string.Equals(
-                        name.GetString(),
-                        ClientAssetName,
-                        StringComparison.OrdinalIgnoreCase))
+                if (!asset.TryGetProperty("name", out var name))
                     continue;
 
+                var assetName = name.GetString();
+                if (!string.Equals(assetName, ClientAssetName, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(assetName, CacheOverrideAssetName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 if (!asset.TryGetProperty("updated_at", out var updatedAt))
-                    return "Unknown";
+                    continue;
 
                 var raw = updatedAt.GetString();
                 if (string.IsNullOrWhiteSpace(raw)
@@ -86,15 +92,20 @@ namespace Saradomin.Infrastructure.Services
                         CultureInfo.InvariantCulture,
                         DateTimeStyles.RoundtripKind,
                         out var timestamp))
-                    return "Unknown";
+                {
+                    continue;
+                }
 
-                return timestamp.ToLocalTime().ToString(
-                    "dd/MM/yy-HH:mm:ss",
-                    CultureInfo.InvariantCulture
-                );
+                if (!newestTimestamp.HasValue || timestamp > newestTimestamp.Value)
+                    newestTimestamp = timestamp;
             }
 
-            return "Unknown";
+            return newestTimestamp.HasValue
+                ? newestTimestamp.Value.ToLocalTime().ToString(
+                    "dd/MM/yy-HH:mm:ss",
+                    CultureInfo.InvariantCulture
+                )
+                : "Unknown";
         }
     }
 }
